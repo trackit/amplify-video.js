@@ -1,6 +1,11 @@
 {
-	"plugins": ["jest"],
-	"extends": "airbnb-base",
+	"root": true,
+	"parser": "@typescript-eslint/parser",
+	"plugins": ["jest", "@typescript-eslint"],
+	"extends": ["airbnb-typescript/base"],
+	"parserOptions": {
+	   "project": "./tsconfig.json"
+	},
     "rules": {
     	"no-param-reassign": "off",
     	"no-return-await" : "off",
