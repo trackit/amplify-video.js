@@ -1,0 +1,38 @@
+{
+  "name": "amplify-video.js",
+  "version": "1.0.0",
+  "description": "amplify-video javascript client library",
+  "main": "index.js",
+  "scripts": {
+    "postinstall": "node scripts/post-install.js",
+    "test": "jest",
+    "lint": "eslint .",
+    "lint-fix": "eslint . --fix"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/trackit/amplify-video.js.git"
+  },
+  "keywords": [
+    "amplify",
+    "video",
+    "amplify-video",
+    "javascript"
+  ],
+  "author": "Nathan Agez",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/trackit/amplify-video.js/issues"
+  },
+  "homepage": "https://github.com/trackit/amplify-video.js#readme",
+  "dependencies": {
+    "chalk": "^4.1.0"
+  },
+  "devDependencies": {
+    "eslint": "^7.24.0",
+    "eslint-config-airbnb": "^18.2.1",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-plugin-jest": "^24.3.5",
+    "jest": "^26.6.3"
+  }
+}
