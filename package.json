@@ -2,10 +2,11 @@
   "name": "amplify-video.js",
   "version": "1.0.0",
   "description": "amplify-video javascript client library",
-  "main": "index.js",
+  "main": "./dist/src/index.js",
   "scripts": {
     "postinstall": "tsc && node dist/scripts/post-install.js",
     "build": "tsc",
+    "dev": "tsc -watch",
     "test": "jest",
     "lint": "eslint .",
     "lint-fix": "eslint . --fix"

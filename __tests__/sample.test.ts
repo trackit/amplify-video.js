@@ -1,3 +1,5 @@
-it('Test sample', () => {
-  expect(1).toBe(1);
+describe('ok', () => {
+  it('Test sample', () => {
+    expect(1).toBe(1);
+  });
 });
