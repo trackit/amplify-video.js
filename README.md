@@ -13,3 +13,27 @@ import Video from 'amplify-video.js';
 ```
 
 To unlink module run the following in your project directory `npm unlink --no-save amplify-video.js`.
+
+### How to use 
+
+#### Configuration and registration
+```ts
+import Amplify from 'aws-amplify';
+import Video from 'amplify-video.js/dist';
+import awsconfig from './aws-exports';
+
+Amplify.configure(awsconfig);
+Amplify.register(Video);
+```
+
+
+#### Upload
+```ts
+import Video from 'amplify-video.js/dist';
+
+async function upload(e) {
+    const file = e.target.files[0];
+
+    await Video.upload(file, { bucket: 'your-input-bucket' });
+}
+```
