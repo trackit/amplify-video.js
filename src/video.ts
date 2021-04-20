@@ -1,37 +1,56 @@
-/* eslint-disable @typescript-eslint/lines-between-class-members */
-import Amplify, { Storage } from 'aws-amplify';
+import { ConsoleLogger as Logger, Amplify } from '@aws-amplify/core';
+import { StorageClass } from '@aws-amplify/storage';
+import AuthClass, { Auth } from '@aws-amplify/auth';
+import { StorageConfig } from './config.interface';
+
+const logger = new Logger('VideoClass');
 
 export default class VideoClass {
-  private videoConfig = null;
-  private amplifyConfig = null;
+  private storage: StorageClass = new StorageClass();
 
-  public configure(config, videoConfig) {
-    this.amplifyConfig = Amplify.configure(config);
-    this.videoConfig = videoConfig;
-    console.log(Amplify);
+  private auth: typeof AuthClass = Auth;
+
+  private config: any;
+
+  constructor() {
+    this.config = {};
   }
 
-  public async upload(file, config?) {
+  public configure(config?: any) {
+    logger.debug('configure Video');
+    this.config = config;
+    Amplify.configure(config);
+    Amplify.register(this.storage);
+    Amplify.register(this.auth);
+    return this.config;
+  }
+
+  public static getModuleName() {
+    return 'Video';
+  }
+
+  public async upload(file, config: StorageConfig) {
     config = {
-      bucket: this.videoConfig.awsInputVideo,
-      region: this.amplifyConfig.aws_project_region,
+      region: this.config.aws_project_region,
       customPrefix: {
         public: '',
       },
       ...config,
     };
     // -> TODO: GraphQL
-    return Storage.put(file.name, file, config);
+    return this.storage.put(file.name, file, config);
   }
 
-  public async delete(asset: string, config?) {
+  public async delete(asset: string, config: StorageConfig) {
     config = {
-      bucket: this.videoConfig.awsInputVideo,
-      region: this.amplifyConfig.aws_project_region,
+      region: this.config.aws_project_region,
+      customPrefix: {
+        public: '',
+      },
       ...config,
     };
 
     // TODO: GraphQL
-    return Storage.remove(asset, config);
+    return this.storage.remove(asset, config);
   }
 }
