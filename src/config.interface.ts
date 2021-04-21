@@ -7,4 +7,5 @@ export interface StorageConfig {
   },
   level?: 'public' | 'private' | 'protected';
   bucket: string;
+  contentType: string;
 }
