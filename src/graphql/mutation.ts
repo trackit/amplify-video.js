@@ -33,3 +33,39 @@ export const createVodAsset = `
     }
   }
 `;
+
+export const deleteVideoObject = `
+  mutation DeleteVideoObject(
+    $input: DeleteVideoObjectInput!
+    $condition: ModelvideoObjectConditionInput
+  ) {
+    deleteVideoObject(input: $input, condition: $condition) {
+      id
+      createdAt
+      updatedAt
+      owner
+    }
+  }
+`;
+
+export const deleteVodAsset = `
+  mutation DeleteVodAsset(
+    $input: DeleteVodAssetInput!
+    $condition: ModelvodAssetConditionInput
+  ) {
+    deleteVodAsset(input: $input, condition: $condition) {
+      id
+      title
+      description
+      video {
+        id
+        createdAt
+        updatedAt
+        owner
+      }
+      createdAt
+      updatedAt
+      owner
+    }
+  }
+`;

@@ -5,7 +5,9 @@ import AuthClass, { Auth } from '@aws-amplify/auth';
 import { v4 as uuidv4 } from 'uuid';
 
 import { StorageConfig } from './config.interface';
-import { createVideoObject, createVodAsset } from './graphql/mutation';
+import {
+  createVideoObject, createVodAsset, deleteVideoObject, deleteVodAsset,
+} from './graphql/mutation';
 
 const logger = new Logger('VideoClass');
 
@@ -18,16 +20,27 @@ export default class VideoClass {
 
   private config: any;
 
+  private bucketConfig: {};
+
+  private extensions: Array<string>;
+
   constructor() {
     this.config = {};
     this.storage = new StorageClass();
     this.auth = Auth;
     this.api = API;
+    this.extensions = ['mpg', 'mp4', 'm2ts', 'mov'];
   }
 
   public configure(config?: any) {
     logger.debug('configure Video');
     this.config = config;
+    this.bucketConfig = {
+      region: this.config.aws_project_region,
+      customPrefix: {
+        public: '',
+      },
+    };
     Amplify.configure(config);
     Amplify.register(this.api);
     Amplify.register(this.auth);
@@ -41,7 +54,7 @@ export default class VideoClass {
 
   public async upload(file, metadatadict: any, config: StorageConfig) {
     if (file.type.split('/')[0] !== 'video') {
-      return logger.error('Format is not supported (supported formats: .mpg, .mp4, .m2ts, .mov).');
+      return logger.error(`Format is not supported (supported formats:${this.extensions.map((extention) => ` .${extention}`)})`);
     }
     const uuid = uuidv4();
     const fileExtension = file.name.toLowerCase().split('.');
@@ -52,16 +65,14 @@ export default class VideoClass {
     };
     const videoAsset = {
       input: {
+        id: uuid,
         vodAssetVideoId: uuid,
         ...metadatadict,
       },
     };
     config = {
-      region: this.config.aws_project_region,
-      customPrefix: {
-        public: '',
-      },
       contentType: 'video/*',
+      ...this.bucketConfig,
       ...config,
     };
 
@@ -83,16 +94,32 @@ export default class VideoClass {
     }
   }
 
-  public async delete(asset: string, config: StorageConfig) {
-    config = {
-      region: this.config.aws_project_region,
-      customPrefix: {
-        public: '',
+  public async delete(vodAssetVideoId: string, config: StorageConfig) {
+    const input = {
+      input: {
+        id: vodAssetVideoId,
       },
+    };
+
+    config = {
+      ...this.bucketConfig,
       ...config,
     };
 
-    // TODO: GraphQL
-    return this.storage.remove(asset, config);
+    try {
+      const videoObjectResponse: any = await this.api.graphql(
+        graphqlOperation(deleteVideoObject, input),
+      );
+      const vodAssetResponse: any = await this.api.graphql(
+        graphqlOperation(deleteVodAsset, input),
+      );
+      await Promise.all(this.extensions.map((extension) => this.storage.remove(`${vodAssetVideoId}.${extension}`, config)));
+      return {
+        deleteVideoObject: videoObjectResponse.data.deleteVideoObject,
+        deleteVodAsset: vodAssetResponse.data.deleteVodAsset,
+      };
+    } catch (error) {
+      return logger.error(error);
+    }
   }
 }
