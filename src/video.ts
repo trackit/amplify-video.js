@@ -3,11 +3,12 @@ import { StorageClass } from '@aws-amplify/storage';
 import { API, graphqlOperation } from '@aws-amplify/api';
 import AuthClass, { Auth } from '@aws-amplify/auth';
 import { v4 as uuidv4 } from 'uuid';
-
-import { StorageConfig } from './config.interface';
+import { MetadataDict, StorageConfig } from './video.interface';
 import {
   createVideoObject, createVodAsset, deleteVideoObject, deleteVodAsset,
+  updateVodAsset,
 } from './graphql/mutation';
+import { getVodAsset } from './graphql/queries';
 
 const logger = new Logger('VideoClass');
 
@@ -52,7 +53,7 @@ export default class VideoClass {
     return 'Video';
   }
 
-  public async upload(file, metadatadict: any, config: StorageConfig) {
+  public async upload(file, metadatadict: MetadataDict, config: StorageConfig) {
     if (file.type.split('/')[0] !== 'video') {
       return logger.error(`Format is not supported (supported formats:${this.extensions.map((extention) => ` .${extention}`)})`);
     }
@@ -85,9 +86,11 @@ export default class VideoClass {
       );
       const storageResponse: any = await this.storage.put(`${uuid}.${fileExtension[fileExtension.length - 1]}`, file, config);
       return {
-        createVideoObject: videoObjectResponse.data.createVideoObject,
-        createVodAsset: vodAssetResponse.data.createVodAsset,
-        key: storageResponse.key,
+        data: {
+          createVideoObject: videoObjectResponse.data.createVideoObject,
+          createVodAsset: vodAssetResponse.data.createVodAsset,
+          key: storageResponse.key,
+        },
       };
     } catch (error) {
       return logger.error(error);
@@ -115,9 +118,28 @@ export default class VideoClass {
       );
       await Promise.all(this.extensions.map((extension) => this.storage.remove(`${vodAssetVideoId}.${extension}`, config)));
       return {
-        deleteVideoObject: videoObjectResponse.data.deleteVideoObject,
-        deleteVodAsset: vodAssetResponse.data.deleteVodAsset,
+        data: {
+          deleteVideoObject: videoObjectResponse.data.deleteVideoObject,
+          deleteVodAsset: vodAssetResponse.data.deleteVodAsset,
+        },
       };
+    } catch (error) {
+      return logger.error(error);
+    }
+  }
+
+  public async metadata(vodAssetVideoId: string, metadatadict?: MetadataDict) {
+    try {
+      if (metadatadict === undefined || metadatadict === null) {
+        const vodAssetResponse: any = await this.api.graphql(
+          graphqlOperation(getVodAsset, { id: vodAssetVideoId }),
+        );
+        return vodAssetResponse;
+      }
+      const vodAssetResponse: any = await this.api.graphql(
+        graphqlOperation(updateVodAsset, { input: { id: vodAssetVideoId, ...metadatadict } }),
+      );
+      return vodAssetResponse;
     } catch (error) {
       return logger.error(error);
     }

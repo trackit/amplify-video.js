@@ -69,3 +69,25 @@ export const deleteVodAsset = `
     }
   }
 `;
+
+export const updateVodAsset = /* GraphQL */ `
+  mutation UpdateVodAsset(
+    $input: UpdateVodAssetInput!
+    $condition: ModelvodAssetConditionInput
+  ) {
+    updateVodAsset(input: $input, condition: $condition) {
+      id
+      title
+      description
+      video {
+        id
+        createdAt
+        updatedAt
+        owner
+      }
+      createdAt
+      updatedAt
+      owner
+    }
+  }
+`;

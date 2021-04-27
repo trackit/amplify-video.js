@@ -9,3 +9,9 @@ export interface StorageConfig {
   bucket: string;
   contentType: string;
 }
+
+export interface MetadataDict {
+  title: string;
+  description: string;
+  [key: string]: string;
+}
