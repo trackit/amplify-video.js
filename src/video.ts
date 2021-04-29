@@ -1,13 +1,11 @@
+import { v4 as uuidv4 } from 'uuid';
 import { ConsoleLogger as Logger, Amplify } from '@aws-amplify/core';
 import { StorageClass } from '@aws-amplify/storage';
 import { API, graphqlOperation } from '@aws-amplify/api';
 import AuthClass, { Auth } from '@aws-amplify/auth';
 import Analytics from '@aws-amplify/analytics';
-import { v4 as uuidv4 } from 'uuid';
-import { MetadataDict, StorageConfig } from './video.interface';
-import { MutationCreator, QueryCreator } from './graphql/Factory';
-import TokenMutationCreator from './graphql/creators/TokenMutationCreator';
-import TokenQueryCreator from './graphql/creators/TokenQueryCreator';
+import { AbstractFactory, MetadataDict, StorageConfig } from './Interfaces';
+import { TokenFactory } from './graphql/Factory';
 
 const logger = new Logger('VideoClass');
 
@@ -19,8 +17,7 @@ export default class VideoClass {
   private _analytics: typeof Analytics;
   private _storage: StorageClass;
   private _extensions: Array<string>;
-  private _mutations: MutationCreator;
-  private _queries: QueryCreator;
+  private _factory: AbstractFactory;
 
   constructor() {
     this._config = {};
@@ -47,10 +44,9 @@ export default class VideoClass {
     // Amplify.register(this._analytics);
 
     // if config.signedUrl = true
-    this._mutations = new TokenMutationCreator();
-    this._queries = new TokenQueryCreator();
+    this._factory = new TokenFactory();
     // else
-    // this._mutations = new OwnerMutationCreator();
+    // this._factory = new OwnerFactory();
     return this._config;
   }
 
@@ -84,10 +80,10 @@ export default class VideoClass {
 
     try {
       const videoObjectResponse: any = await this._api.graphql(
-        graphqlOperation(this._mutations.factoryMethod().createVideoObject(), videoObject),
+        graphqlOperation(this._factory.createMutation().createVideoObject(), videoObject),
       );
       const vodAssetResponse: any = await this._api.graphql(
-        graphqlOperation(this._mutations.factoryMethod().createVodAsset(), videoAsset),
+        graphqlOperation(this._factory.createMutation().createVodAsset(), videoAsset),
       );
       const storageResponse: any = await this._storage.put(`${uuid}.${fileExtension[fileExtension.length - 1]}`, file, config);
       return {
@@ -116,10 +112,10 @@ export default class VideoClass {
 
     try {
       const videoObjectResponse: any = await this._api.graphql(
-        graphqlOperation(this._mutations.factoryMethod().deleteVideoObject(), input),
+        graphqlOperation(this._factory.createMutation().deleteVideoObject(), input),
       );
       const vodAssetResponse: any = await this._api.graphql(
-        graphqlOperation(this._mutations.factoryMethod().deleteVodAsset(), input),
+        graphqlOperation(this._factory.createMutation().deleteVodAsset(), input),
       );
       await Promise.all(this._extensions.map((extension) => this._storage.remove(`${vodAssetVideoId}.${extension}`, config)));
       return {
@@ -137,12 +133,12 @@ export default class VideoClass {
     try {
       if (metadatadict === undefined || metadatadict === null) {
         const vodAssetResponse: any = await this._api.graphql(
-          graphqlOperation(this._queries.factoryMethod().getVodAsset(), { id: vodAssetVideoId }),
+          graphqlOperation(this._factory.createQuery().getVodAsset(), { id: vodAssetVideoId }),
         );
         return vodAssetResponse;
       }
       const vodAssetResponse: any = await this._api.graphql(
-        graphqlOperation(this._mutations.factoryMethod()
+        graphqlOperation(this._factory.createMutation()
           .updateVodAsset(), { input: { id: vodAssetVideoId, ...metadatadict } }),
       );
       return vodAssetResponse;

@@ -1,4 +1,4 @@
-import { Query } from '../../video.interface';
+import { Query } from '../../Interfaces';
 
 export default class OwnerQuery implements Query {
   public getVodAsset() {

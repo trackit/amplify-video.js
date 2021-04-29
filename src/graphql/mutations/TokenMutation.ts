@@ -1,4 +1,4 @@
-import { Mutation } from '../../video.interface';
+import { Mutation } from '../../Interfaces';
 
 export default class TokenMutation implements Mutation {
   public createVideoObject() {

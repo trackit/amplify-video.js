@@ -1,4 +1,4 @@
-import { Query } from '../../video.interface';
+import { Query } from '../../Interfaces';
 
 export default class TokenQuery implements Query {
   public getVodAsset() {
