@@ -16,7 +16,8 @@
     	"global-require": "off",
     	"import/no-dynamic-require": "off",
 		"consistent-return": "off",
-		"no-plusplus": "off"
+		"no-plusplus": "off",
+		"no-underscore-dangle": ["error", { "allowAfterThisConstructor": true }]
 	},
 	"env": {
 		"jest/globals": true

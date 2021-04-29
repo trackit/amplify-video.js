@@ -15,3 +15,11 @@ export interface MetadataDict {
   description: string;
   [key: string]: string;
 }
+
+export interface Mutation {
+  createVideoObject(): string;
+  createVodAsset(): string;
+  deleteVideoObject(): string;
+  deleteVodAsset(): string;
+  updateVodAsset(): string;
+}

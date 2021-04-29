@@ -2,51 +2,60 @@ import { ConsoleLogger as Logger, Amplify } from '@aws-amplify/core';
 import { StorageClass } from '@aws-amplify/storage';
 import { API, graphqlOperation } from '@aws-amplify/api';
 import AuthClass, { Auth } from '@aws-amplify/auth';
+import Analytics from '@aws-amplify/analytics';
 import { v4 as uuidv4 } from 'uuid';
 import { MetadataDict, StorageConfig } from './video.interface';
-import {
-  createVideoObject, createVodAsset, deleteVideoObject, deleteVodAsset,
-  updateVodAsset,
-} from './graphql/mutation';
 import { getVodAsset } from './graphql/queries';
+import MutationCreator from './Mutationfactory';
 
 const logger = new Logger('VideoClass');
 
 export default class VideoClass {
-  private storage: StorageClass;
+  private _storage: StorageClass;
 
-  private auth: typeof AuthClass;
+  private _auth: typeof AuthClass;
 
-  private api: typeof API;
+  private _api: typeof API;
 
-  private config: any;
+  private _analytics: typeof Analytics;
 
-  private bucketConfig: {};
+  private _config: any;
 
-  private extensions: Array<string>;
+  private _bucketConfig: {};
+
+  private _extensions: Array<string>;
+
+  private _mutations: MutationCreator;
 
   constructor() {
-    this.config = {};
-    this.storage = new StorageClass();
-    this.auth = Auth;
-    this.api = API;
-    this.extensions = ['mpg', 'mp4', 'm2ts', 'mov'];
+    this._config = {};
+    this._storage = new StorageClass();
+    this._auth = Auth;
+    this._api = API;
+    // this._analytics = Analytics;-
+    this._extensions = ['mpg', 'mp4', 'm2ts', 'mov'];
   }
 
   public configure(config?: any) {
     logger.debug('configure Video');
-    this.config = config;
-    this.bucketConfig = {
-      region: this.config.aws_project_region,
+    this._config = config;
+    this._bucketConfig = {
+      region: this._config.aws_project_region,
       customPrefix: {
         public: '',
       },
     };
-    Amplify.configure(config);
-    Amplify.register(this.api);
-    Amplify.register(this.auth);
-    Amplify.register(this.storage);
-    return this.config;
+    console.log(Amplify.configure(config));
+    Amplify.register(this._api);
+    Amplify.register(this._auth);
+    Amplify.register(this._storage);
+    // Amplify.register(this._analytics);
+
+    // if config.signedUrl = true
+    this._mutations = new TokenMutationCreator();
+    // else
+    // this._mutations = new OwnerMutationCreator();
+    return this._config;
   }
 
   public static getModuleName() {
@@ -55,7 +64,7 @@ export default class VideoClass {
 
   public async upload(file, metadatadict: MetadataDict, config: StorageConfig) {
     if (file.type.split('/')[0] !== 'video') {
-      return logger.error(`Format is not supported (supported formats:${this.extensions.map((extention) => ` .${extention}`)})`);
+      return logger.error(`Format is not supported (supported formats:${this._extensions.map((extention) => ` .${extention}`)})`);
     }
     const uuid = uuidv4();
     const fileExtension = file.name.toLowerCase().split('.');
@@ -73,18 +82,18 @@ export default class VideoClass {
     };
     config = {
       contentType: 'video/*',
-      ...this.bucketConfig,
+      ...this._bucketConfig,
       ...config,
     };
 
     try {
-      const videoObjectResponse: any = await this.api.graphql(
-        graphqlOperation(createVideoObject, videoObject),
+      const videoObjectResponse: any = await this._api.graphql(
+        graphqlOperation(this._mutations.factoryMethod().createVideoObject(), videoObject),
       );
-      const vodAssetResponse: any = await this.api.graphql(
-        graphqlOperation(createVodAsset, videoAsset),
+      const vodAssetResponse: any = await this._api.graphql(
+        graphqlOperation(this._mutations.factoryMethod().createVodAsset(), videoAsset),
       );
-      const storageResponse: any = await this.storage.put(`${uuid}.${fileExtension[fileExtension.length - 1]}`, file, config);
+      const storageResponse: any = await this._storage.put(`${uuid}.${fileExtension[fileExtension.length - 1]}`, file, config);
       return {
         data: {
           createVideoObject: videoObjectResponse.data.createVideoObject,
@@ -105,18 +114,18 @@ export default class VideoClass {
     };
 
     config = {
-      ...this.bucketConfig,
+      ...this._bucketConfig,
       ...config,
     };
 
     try {
-      const videoObjectResponse: any = await this.api.graphql(
-        graphqlOperation(deleteVideoObject, input),
+      const videoObjectResponse: any = await this._api.graphql(
+        graphqlOperation(this._mutations.factoryMethod().deleteVideoObject(), input),
       );
-      const vodAssetResponse: any = await this.api.graphql(
-        graphqlOperation(deleteVodAsset, input),
+      const vodAssetResponse: any = await this._api.graphql(
+        graphqlOperation(this._mutations.factoryMethod().deleteVodAsset(), input),
       );
-      await Promise.all(this.extensions.map((extension) => this.storage.remove(`${vodAssetVideoId}.${extension}`, config)));
+      await Promise.all(this._extensions.map((extension) => this._storage.remove(`${vodAssetVideoId}.${extension}`, config)));
       return {
         data: {
           deleteVideoObject: videoObjectResponse.data.deleteVideoObject,
@@ -131,17 +140,22 @@ export default class VideoClass {
   public async metadata(vodAssetVideoId: string, metadatadict?: MetadataDict) {
     try {
       if (metadatadict === undefined || metadatadict === null) {
-        const vodAssetResponse: any = await this.api.graphql(
+        const vodAssetResponse: any = await this._api.graphql(
           graphqlOperation(getVodAsset, { id: vodAssetVideoId }),
         );
         return vodAssetResponse;
       }
-      const vodAssetResponse: any = await this.api.graphql(
-        graphqlOperation(updateVodAsset, { input: { id: vodAssetVideoId, ...metadatadict } }),
+      const vodAssetResponse: any = await this._api.graphql(
+        graphqlOperation(this._mutations.factoryMethod().updateVodAsset(), { input: { id: vodAssetVideoId, ...metadatadict } }),
       );
       return vodAssetResponse;
     } catch (error) {
       return logger.error(error);
     }
+  }
+
+  public async analytics(event: string | { [key: string]: string }) {
+    const data = await this._analytics.record(event);
+    return data;
   }
 }

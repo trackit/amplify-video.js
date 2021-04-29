@@ -29,6 +29,7 @@
   },
   "homepage": "https://github.com/trackit/amplify-video.js#readme",
   "dependencies": {
+    "@aws-amplify/analytics": "^4.0.18",
     "@aws-amplify/api": "^3.2.30",
     "@aws-amplify/auth": "^3.4.30",
     "@aws-amplify/core": "^3.8.21",

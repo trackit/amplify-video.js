@@ -37,3 +37,6 @@ async function upload(e) {
     await Video.upload(file, { bucket: 'your-input-bucket' });
 }
 ```
+
+#### Analytics
+require `amplify add analytics`
