@@ -16,11 +16,6 @@ export interface MetadataDict {
   [key: string]: string;
 }
 
-export interface AbstractFactory {
-  createMutation(): Mutation;
-  createQuery(): Query;
-}
-
 export interface Mutation {
   createVideoObject(): string;
   createVodAsset(): string;
@@ -31,4 +26,9 @@ export interface Mutation {
 
 export interface Query {
   getVodAsset(): string;
+}
+
+export interface AbstractFactory {
+  createMutation(): Mutation;
+  createQuery(): Query;
 }
