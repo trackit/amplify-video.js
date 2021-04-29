@@ -16,7 +16,12 @@
     	"global-require": "off",
     	"import/no-dynamic-require": "off",
 		"consistent-return": "off",
-		"no-plusplus": "off"
+		"no-plusplus": "off",
+		"no-underscore-dangle": ["error", { "allowAfterThis": true }],
+		"max-classes-per-file": ["error", 3],
+		"class-methods-use-this": "off",
+		"lines-between-class-members": "off",
+		"@typescript-eslint/lines-between-class-members": ["off"]
 	},
 	"env": {
 		"jest/globals": true

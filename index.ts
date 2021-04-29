@@ -1,5 +1,5 @@
 import { ConsoleLogger as Logger } from '@aws-amplify/core';
-import VideoClass from './src/video';
+import VideoClass from './src/Video';
 
 const logger = new Logger('Video');
 
