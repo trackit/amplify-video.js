@@ -1,4 +1,6 @@
-export class OwnerMutation implements Mutation {
+import { Mutation } from '../../video.interface';
+
+export default class OwnerMutation implements Mutation {
   public createVideoObject() {
     return `
           mutation CreateVideoObject(

@@ -5,34 +5,29 @@ import AuthClass, { Auth } from '@aws-amplify/auth';
 import Analytics from '@aws-amplify/analytics';
 import { v4 as uuidv4 } from 'uuid';
 import { MetadataDict, StorageConfig } from './video.interface';
-import { getVodAsset } from './graphql/queries';
-import MutationCreator from './Mutationfactory';
+import { MutationCreator, QueryCreator } from './graphql/Factory';
+import TokenMutationCreator from './graphql/creators/TokenMutationCreator';
+import TokenQueryCreator from './graphql/creators/TokenQueryCreator';
 
 const logger = new Logger('VideoClass');
 
 export default class VideoClass {
-  private _storage: StorageClass;
-
-  private _auth: typeof AuthClass;
-
-  private _api: typeof API;
-
-  private _analytics: typeof Analytics;
-
   private _config: any;
-
   private _bucketConfig: {};
-
+  private _auth: typeof AuthClass;
+  private _api: typeof API;
+  private _analytics: typeof Analytics;
+  private _storage: StorageClass;
   private _extensions: Array<string>;
-
   private _mutations: MutationCreator;
+  private _queries: QueryCreator;
 
   constructor() {
     this._config = {};
     this._storage = new StorageClass();
     this._auth = Auth;
     this._api = API;
-    // this._analytics = Analytics;-
+    // this._analytics = Analytics;
     this._extensions = ['mpg', 'mp4', 'm2ts', 'mov'];
   }
 
@@ -45,7 +40,7 @@ export default class VideoClass {
         public: '',
       },
     };
-    console.log(Amplify.configure(config));
+    Amplify.configure(config);
     Amplify.register(this._api);
     Amplify.register(this._auth);
     Amplify.register(this._storage);
@@ -53,6 +48,7 @@ export default class VideoClass {
 
     // if config.signedUrl = true
     this._mutations = new TokenMutationCreator();
+    this._queries = new TokenQueryCreator();
     // else
     // this._mutations = new OwnerMutationCreator();
     return this._config;
@@ -141,12 +137,13 @@ export default class VideoClass {
     try {
       if (metadatadict === undefined || metadatadict === null) {
         const vodAssetResponse: any = await this._api.graphql(
-          graphqlOperation(getVodAsset, { id: vodAssetVideoId }),
+          graphqlOperation(this._queries.factoryMethod().getVodAsset(), { id: vodAssetVideoId }),
         );
         return vodAssetResponse;
       }
       const vodAssetResponse: any = await this._api.graphql(
-        graphqlOperation(this._mutations.factoryMethod().updateVodAsset(), { input: { id: vodAssetVideoId, ...metadatadict } }),
+        graphqlOperation(this._mutations.factoryMethod()
+          .updateVodAsset(), { input: { id: vodAssetVideoId, ...metadatadict } }),
       );
       return vodAssetResponse;
     } catch (error) {

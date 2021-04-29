@@ -23,3 +23,7 @@ export interface Mutation {
   deleteVodAsset(): string;
   updateVodAsset(): string;
 }
+
+export interface Query {
+  getVodAsset(): string;
+}

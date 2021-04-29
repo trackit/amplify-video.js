@@ -1,5 +1,6 @@
-import { MutationCreator } from '../factory';
-import { Mutation } from '../video.interface';
+import { Mutation } from '../../video.interface';
+import { MutationCreator } from '../Factory';
+import TokenMutation from '../mutations/TokenMutation';
 
 export default class TokenMutationCreator extends MutationCreator {
   public factoryMethod(): Mutation {
