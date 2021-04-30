@@ -4,7 +4,9 @@ import { StorageClass } from '@aws-amplify/storage';
 import { API, graphqlOperation } from '@aws-amplify/api';
 import AuthClass, { Auth } from '@aws-amplify/auth';
 import Analytics from '@aws-amplify/analytics';
-import { AbstractFactory, MetadataDict, StorageConfig } from './Interfaces';
+import {
+  AbstractFactory, MetadataDict, PlayerbackConfig, StorageConfig,
+} from './Interfaces';
 import { TokenFactory } from './graphql/Factory';
 
 const logger = new Logger('VideoClass');
@@ -145,6 +147,20 @@ export default class VideoClass {
     } catch (error) {
       return logger.error(error);
     }
+  }
+
+  public async playback(vodAssetVideoId: string, config?: PlayerbackConfig) {
+    const vodAssetResponse: any = await this._api.graphql(
+      graphqlOperation(this._factory.createQuery().getVodAsset(), { id: vodAssetVideoId }),
+    );
+    const { id } = vodAssetResponse.data.getVodAsset;
+    const { token } = vodAssetResponse.data.getVodAsset.video;
+    return {
+      data: {
+        playbackUrl: `https://${config.awsOutputVideo}/${id}/${id}.m3u8`,
+        token,
+      },
+    };
   }
 
   public async analytics(event: string | { [key: string]: string }) {

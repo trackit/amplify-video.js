@@ -10,6 +10,10 @@ export interface StorageConfig {
   contentType: string;
 }
 
+export interface PlayerbackConfig {
+  awsOutputVideo: string;
+}
+
 export interface MetadataDict {
   title: string;
   description: string;

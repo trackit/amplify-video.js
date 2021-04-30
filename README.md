@@ -38,5 +38,134 @@ async function upload(e) {
 }
 ```
 
+#### Delete
+```ts
+import Video from 'amplify-video.js/dist';
+import awsVideoConfig from "./aws-video-exports";
+
+(async () => {
+    const data = await Video.delete('vodAssetId', {
+        bucket: awsVideoConfig.awsInputVideo,
+    });
+    console.log(data);
+    /*
+        data: {
+            deleteVideoObject,
+            deleteVodAsset,
+        }
+    */
+})();
+```
+
+#### Playback
+```ts
+import Video from 'amplify-video.js/dist';
+import awsVideoConfig from "./aws-video-exports";
+
+(async () => {
+    const { data } = await Video.playback(vodAssetId, { awsOutputVideo: awsVideoConfig.awsOutputVideo });
+    console.log(data);
+    // {playbackUrl: "", token: ""}
+})();
+```
+
 #### Analytics
 require `amplify add analytics`
+
+### Video Player integration
+#### React (JSX)
+```jsx
+
+import React from 'react';
+import videojs from 'video.js';
+import 'video.js/dist/video-js.css';
+
+
+export default class VideoPlayer extends React.Component {
+  componentDidMount() {
+    videojs.Hls.xhr.beforeRequest = (
+      options
+    ) => {
+      options.uri = `${options.uri}${this.props.token}`
+      return options;
+    };
+    this.player = videojs(this.videoNode, this.props);
+  }
+
+  componentWillUnmount() {
+    if (this.player) {
+      this.player.dispose();
+    }
+  }
+
+  render() {
+    return (
+      <div>
+        <div data-vjs-player>
+          <video ref={(node) => { this.videoNode = node; }} className="video-js"></video>
+        </div>
+      </div>
+    );
+  }
+}
+```
+
+#### React (TSX)
+```tsx
+import React from "react";
+import videojs from "video.js";
+import "./VideoPlayer.css";
+import "video.js/dist/video-js.css";
+
+interface VideoPlayerPropsInferface extends videojs.PlayerOptions {
+    token: string;
+}
+
+export default class VideoPlayer extends React.Component<VideoPlayerPropsInferface> {
+  private player?: videojs.Player;
+  private videoNode?: HTMLVideoElement;
+  private options?: VideoPlayerPropsInferface;
+
+  constructor(props: VideoPlayerPropsInferface) {
+    super(props);
+    this.options = props;
+    this.player = null;
+    this.videoNode = null;
+  }
+
+  componentDidMount() {
+    // @ts-ignore
+    videojs.Vhs.xhr.beforeRequest = (
+      options: any
+    ) => {
+      options.uri = `${options.uri}${this.options?.token}`
+      return options;
+    };
+
+    this.player = videojs(this.videoNode, this.options).ready(function () {
+      console.log("onPlayerReady", this);
+    });
+  }
+
+  componentWillUnmount() {
+    if (this.player) {
+      this.player.dispose();
+    }
+  }
+
+  render() {
+    return (
+      <div className="video-player">
+        <div data-vjs-player>
+          <video
+            ref={(node: HTMLVideoElement) => {
+              this.videoNode = node;
+            }}
+            className="vjs-fluid video-js vjs-default-skin vjs-big-play-centered"
+          />
+        </div>
+      </div>
+    );
+  }
+}
+```
