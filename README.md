@@ -57,6 +57,23 @@ import awsVideoConfig from "./aws-video-exports";
 })();
 ```
 
+#### Analytics
+Requires `amplify add analytics`
+You must add the following Actions to the inline policy of the AdminGroupRole:
+
+```json
+{
+  "Action": [
+    "mobiletargeting:PutEvents",
+    "mobiletargeting:UpdateEndpoint"
+  ],
+  "Resource": "*",
+  "Effect": "Allow"
+}
+``` 
+TODO: Complete this part
+
+
 #### Playback
 ```ts
 import Video from 'amplify-video.js/dist';
@@ -68,9 +85,6 @@ import awsVideoConfig from "./aws-video-exports";
     // {playbackUrl: "", token: ""}
 })();
 ```
-
-#### Analytics
-require `amplify add analytics`
 
 ### Video Player integration
 #### React (JSX)
