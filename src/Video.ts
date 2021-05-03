@@ -7,7 +7,7 @@ import Analytics from '@aws-amplify/analytics';
 import {
   AbstractFactory, MetadataDict, PlayerbackConfig, StorageConfig,
 } from './Interfaces';
-import { TokenFactory } from './graphql/Factory';
+import { TokenFactory, OwnerFactory } from './graphql/Factory';
 
 const logger = new Logger('VideoClass');
 
@@ -26,7 +26,7 @@ export default class VideoClass {
     this._storage = new StorageClass();
     this._auth = Auth;
     this._api = API;
-    // this._analytics = Analytics;
+    this._analytics = Analytics;
     this._extensions = ['mpg', 'mp4', 'm2ts', 'mov'];
   }
 
@@ -43,12 +43,13 @@ export default class VideoClass {
     Amplify.register(this._api);
     Amplify.register(this._auth);
     Amplify.register(this._storage);
-    // Amplify.register(this._analytics);
+    Amplify.register(this._analytics);
 
-    // if config.signedUrl = true
-    this._factory = new TokenFactory();
-    // else
-    // this._factory = new OwnerFactory();
+    if (this._config.signedUrl) {
+      this._factory = new TokenFactory();
+    } else {
+      this._factory = new OwnerFactory();
+    }
     return this._config;
   }
 
@@ -154,11 +155,18 @@ export default class VideoClass {
       graphqlOperation(this._factory.createQuery().getVodAsset(), { id: vodAssetVideoId }),
     );
     const { id } = vodAssetResponse.data.getVodAsset;
-    const { token } = vodAssetResponse.data.getVodAsset.video;
+    if (this._config.signedUrl) {
+      const { token } = vodAssetResponse.data.getVodAsset.video;
+      return {
+        data: {
+          playbackUrl: `https://${config.awsOutputVideo}/${id}/${id}.m3u8`,
+          token,
+        },
+      };
+    }
     return {
       data: {
-        playbackUrl: `https://${config.awsOutputVideo}/${id}/${id}.m3u8`,
-        token,
+        playbackUrl: `${config.awsOutputVideo}/${id}/${id}.m3u8`,
       },
     };
   }
