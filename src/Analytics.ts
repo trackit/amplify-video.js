@@ -46,9 +46,8 @@ export default class VideoAnalytics {
     if (this.bufferStart.ready && curTime !== this.bufferPosition) {
       this.bufferEnd.value = new Date();
 
-      const secondsToLoad =
-        (this.bufferEnd.value.getTime() - this.bufferStart.value.getTime()) /
-        1000;
+      // eslint-disable-next-line max-len
+      const secondsToLoad = (this.bufferEnd.value.getTime() - this.bufferStart.value.getTime()) / 1000;
 
       this.bufferStart.ready = false;
       this.bufferPosition = false;

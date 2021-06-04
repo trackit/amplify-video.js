@@ -26,8 +26,7 @@ export default class PlayTracking {
 
   public onLoadedData() {
     this.loadend = new Date();
-    this.secondsToLoad =
-      (this.loadend.getTime() - this.loadstart.getTime()) / 1000;
+    this.secondsToLoad = (this.loadend.getTime() - this.loadstart.getTime()) / 1000;
   }
 
   public onPlaying() {
