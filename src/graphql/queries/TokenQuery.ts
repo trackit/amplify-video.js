@@ -12,7 +12,6 @@ export default class TokenQuery implements Query {
           id
           createdAt
           updatedAt
-          token
         }
         createdAt
         updatedAt

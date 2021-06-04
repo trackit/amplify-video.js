@@ -9,13 +9,13 @@ export default class TokenMutation implements Mutation {
           ) {
             createVideoObject(input: $input, condition: $condition) {
               id
-              token
               createdAt
               updatedAt
             }
           }
         `;
   }
+  // TODO: Investigate TOKEN
 
   public createVodAsset() {
     return `
@@ -29,7 +29,6 @@ export default class TokenMutation implements Mutation {
               description
               video {
                 id
-                token
                 createdAt
                 updatedAt
               }
@@ -48,7 +47,6 @@ export default class TokenMutation implements Mutation {
           ) {
             deleteVideoObject(input: $input, condition: $condition) {
               id
-              token
               createdAt
               updatedAt
             }
@@ -68,7 +66,6 @@ export default class TokenMutation implements Mutation {
               description
               video {
                 id
-                token
                 createdAt
                 updatedAt
               }
@@ -91,7 +88,6 @@ export default class TokenMutation implements Mutation {
               description
               video {
                 id
-                token
                 createdAt
                 updatedAt
               }

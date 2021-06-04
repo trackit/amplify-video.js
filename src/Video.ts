@@ -1,20 +1,22 @@
 import { v4 as uuidv4 } from 'uuid';
-import { ConsoleLogger as Logger, Amplify } from '@aws-amplify/core';
+import Amplify, { ConsoleLogger as Logger } from '@aws-amplify/core';
 import { StorageClass } from '@aws-amplify/storage';
 import { API, graphqlOperation } from '@aws-amplify/api';
-import AuthClass, { Auth } from '@aws-amplify/auth';
-import Analytics from '@aws-amplify/analytics';
+import { Auth } from '@aws-amplify/auth';
+import { Analytics, AWSKinesisProvider } from '@aws-amplify/analytics';
 import {
   AbstractFactory, MetadataDict, PlayerbackConfig, StorageConfig,
 } from './Interfaces';
 import { TokenFactory, OwnerFactory } from './graphql/Factory';
+import VideoAnalytics from './Analytics';
+import PlayTracking from './Tracking/Play';
 
 const logger = new Logger('VideoClass');
 
 export default class VideoClass {
   private _config: any;
   private _bucketConfig: {};
-  private _auth: typeof AuthClass;
+  private _auth: typeof Auth;
   private _api: typeof API;
   private _analytics: typeof Analytics;
   private _storage: StorageClass;
@@ -28,10 +30,12 @@ export default class VideoClass {
     this._api = API;
     this._analytics = Analytics;
     this._extensions = ['mpg', 'mp4', 'm2ts', 'mov'];
+    console.log('Updated');
   }
 
   public configure(config?: any) {
     logger.debug('configure Video');
+    console.log('issou');
     this._config = config;
     this._bucketConfig = {
       region: this._config.aws_project_region,
@@ -40,15 +44,20 @@ export default class VideoClass {
       },
     };
     Amplify.configure(config);
-    Amplify.register(this._api);
+    this._analytics.configure({
+      AWSKinesis: { region: this._config.aws_project_region },
+      AWSKinesisFirehose: { region: this._config.aws_project_region },
+    });
     Amplify.register(this._auth);
+    Amplify.register(this._api);
     Amplify.register(this._storage);
     Amplify.register(this._analytics);
+    this._analytics.addPluggable(new AWSKinesisProvider());
 
     if (this._config.signedUrl) {
-      this._factory = new TokenFactory();
-    } else {
       this._factory = new OwnerFactory();
+    } else {
+      this._factory = new TokenFactory();
     }
     return this._config;
   }
@@ -154,8 +163,9 @@ export default class VideoClass {
     const vodAssetResponse: any = await this._api.graphql(
       graphqlOperation(this._factory.createQuery().getVodAsset(), { id: vodAssetVideoId }),
     );
+    console.log(vodAssetResponse.data);
     const { id } = vodAssetResponse.data.getVodAsset;
-    if (this._config.signedUrl) {
+    if (!this._config.signedUrl) {
       const { token } = vodAssetResponse.data.getVodAsset.video;
       return {
         data: {
@@ -171,8 +181,37 @@ export default class VideoClass {
     };
   }
 
-  public async analytics(event: string | { [key: string]: string }) {
-    const data = await this._analytics.record(event);
-    return data;
+  public async analytics(streamName: string, provider: string) {
+    const videoPlayers = window.document.getElementsByTagName('video');
+    /*
+    this.on('dispose', reset);
+    this.on('loadstart', reset);
+    this.on('ended', reset);
+    this.on('pause', onPause);
+    this.on('waiting', onPlayerWaiting);
+    this.on('timeupdate', onTimeupdate);
+  */
+    Array.from(videoPlayers).forEach((videoPlayer) => {
+      console.log(videoPlayer);
+      const videoPlayerAnalytics = new VideoAnalytics(videoPlayer, this._analytics);
+      const playingTracker = new PlayTracking();
+
+      videoPlayer.addEventListener('pause', () => videoPlayerAnalytics.onPause(streamName, provider));
+      // videoPlayer.addEventListener('waiting', () => videoPlayerAnalytics.onPlayerWaiting());
+      // videoPlayer.addEventListener('timeupdate', () => videoPlayerAnalytics.onTimeupdate());
+
+      // Playing events
+      videoPlayer.addEventListener('dispose', () => console.log('dispose'));
+      videoPlayer.addEventListener('loadstart', () => playingTracker.onLoadStart());
+      videoPlayer.addEventListener('loadeddata', () => playingTracker.onLoadedData());
+      videoPlayer.addEventListener('playing', () => playingTracker.onPlaying());
+    });
+    // this._analytics.record(
+    //   {
+    //     data,
+    //     streamName,
+    //   },
+    //   'AWSKinesisFirehose',
+    // );
   }
 }

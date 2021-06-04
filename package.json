@@ -29,11 +29,11 @@
   },
   "homepage": "https://github.com/trackit/amplify-video.js#readme",
   "dependencies": {
-    "@aws-amplify/analytics": "^4.0.18",
-    "@aws-amplify/api": "^3.2.30",
-    "@aws-amplify/auth": "^3.4.30",
-    "@aws-amplify/core": "^3.8.21",
-    "@aws-amplify/storage": "^3.3.29",
+    "@aws-amplify/analytics": "^5.0.0",
+    "@aws-amplify/api": "^4.0.0",
+    "@aws-amplify/auth": "^4.0.0",
+    "@aws-amplify/core": "^4.0.2",
+    "@aws-amplify/storage": "^4.0.0",
     "chalk": "^4.1.0",
     "uuid": "^8.3.2"
   },
@@ -45,6 +45,7 @@
     "eslint-config-airbnb-typescript": "^12.3.1",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-jest": "^24.3.5",
+    "eslint-plugin-prettier": "^3.4.0",
     "jest": "^26.6.3",
     "ts-jest": "^26.5.4",
     "typescript": "^4.2.4"
