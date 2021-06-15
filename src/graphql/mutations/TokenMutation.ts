@@ -5,7 +5,7 @@ export default class TokenMutation implements Mutation {
     return `
           mutation CreateVideoObject(
             $input: CreateVideoObjectInput!
-            $condition: ModelvideoObjectConditionInput
+            $condition: ModelVideoObjectConditionInput
           ) {
             createVideoObject(input: $input, condition: $condition) {
               id
@@ -21,7 +21,7 @@ export default class TokenMutation implements Mutation {
     return `
           mutation CreateVodAsset(
             $input: CreateVodAssetInput!
-            $condition: ModelvodAssetConditionInput
+            $condition: ModelVodAssetConditionInput
           ) {
             createVodAsset(input: $input, condition: $condition) {
               id
@@ -43,7 +43,7 @@ export default class TokenMutation implements Mutation {
     return `
           mutation DeleteVideoObject(
             $input: DeleteVideoObjectInput!
-            $condition: ModelvideoObjectConditionInput
+            $condition: ModelVideoObjectConditionInput
           ) {
             deleteVideoObject(input: $input, condition: $condition) {
               id
@@ -58,7 +58,7 @@ export default class TokenMutation implements Mutation {
     return `
           mutation DeleteVodAsset(
             $input: DeleteVodAssetInput!
-            $condition: ModelvodAssetConditionInput
+            $condition: ModelVodAssetConditionInput
           ) {
             deleteVodAsset(input: $input, condition: $condition) {
               id
@@ -80,7 +80,7 @@ export default class TokenMutation implements Mutation {
     return `
           mutation UpdateVodAsset(
             $input: UpdateVodAssetInput!
-            $condition: ModelvodAssetConditionInput
+            $condition: ModelVodAssetConditionInput
           ) {
             updateVodAsset(input: $input, condition: $condition) {
               id
