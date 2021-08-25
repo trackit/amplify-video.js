@@ -184,17 +184,18 @@ export default class VideoClass extends VideoBase {
     };
     Array.from(videoPlayers).forEach((videoPlayer) => {
       this.analytics.videoPlayer = videoPlayer;
-      this.analytics.playTracking();
-      this.analytics.pauseTracking();
-      this.analytics.bufferTracking();
-      this.analytics.seekTracking();
-      // videoPlayer.addEventListener('pause', () => this.analytics.onPause());
-      // videoPlayer.addEventListener('waiting', () => this.analytics.onPlayerWaiting());
-      // videoPlayer.addEventListener('timeupdate', () => this.analytics.onTimeupdate());
-      // videoPlayer.addEventListener('dispose', () => console.log('dispose'));
-      // videoPlayer.addEventListener('loadstart', () => this.analytics.onLoadStart());
-      // videoPlayer.addEventListener('loadeddata', () => this.analytics.onLoadedData());
-      // videoPlayer.addEventListener('playing', () => this.analytics.onPlay());
+      videoPlayer.addEventListener('play', () => this.analytics.play());
+      videoPlayer.addEventListener('loadstart', () => null);
+      videoPlayer.addEventListener('loadeddata', () => this.analytics.loadedData());
+      videoPlayer.addEventListener('waiting', () => this.analytics.buffering());
+      videoPlayer.addEventListener('canplaythrough', () => this.analytics.bufferCompleted());
+      videoPlayer.addEventListener('timeupdate', () => null);
+      videoPlayer.addEventListener('seeking', () => this.analytics.seeking());
+      videoPlayer.addEventListener('seeked', () => this.analytics.seeked());
+      videoPlayer.addEventListener('mediachange', () => this.analytics.step());
+      videoPlayer.addEventListener('error', () => null);
+      videoPlayer.addEventListener('pause', () => this.analytics.pause());
+      videoPlayer.addEventListener('ended', () => null);
     });
   }
 }
