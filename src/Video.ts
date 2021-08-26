@@ -31,8 +31,8 @@ export default class VideoClass {
     this._api = API;
     this._analytics = Analytics;
     this._extensions = ['mpg', 'mp4', 'm2ts', 'mov'];
-    this._mutations = Mutations;
-    this._queries = Queries;
+    this._mutations = {};
+    this._queries = {};
     console.log('Updated');
   }
 
@@ -56,6 +56,16 @@ export default class VideoClass {
     Amplify.register(this._storage);
     Amplify.register(this._analytics);
     this._analytics.addPluggable(new AWSKinesisProvider());
+
+    this._mutations = Object.entries(Mutations).reduce((acc, val) => {
+      acc[val[0]] = val[1](this._config.signedUrl);
+      return acc;
+    }, {});
+    this._queries = Object.entries(Queries).reduce((acc, val) => {
+      acc[val[0]] = val[1](this._config.signedUrl);
+      return acc;
+    }, {});
+
     return this._config;
   }
 
@@ -89,10 +99,10 @@ export default class VideoClass {
 
     try {
       const videoObjectResponse: any = await this._api.graphql(
-        graphqlOperation(this._mutations.createVideoObject(this._config.signedUrl), videoObject),
+        graphqlOperation(this._mutations.createVideoObject, videoObject),
       );
       const vodAssetResponse: any = await this._api.graphql(
-        graphqlOperation(this._mutations.createVodAsset(this._config.signedUrl), videoAsset),
+        graphqlOperation(this._mutations.createVodAsset, videoAsset),
       );
       const storageResponse: any = await this._storage.put(`${uuid}.${fileExtension[fileExtension.length - 1]}`, file, config);
       return {
@@ -121,10 +131,10 @@ export default class VideoClass {
 
     try {
       const videoObjectResponse: any = await this._api.graphql(
-        graphqlOperation(this._mutations.deleteVideoObject(this._config.signedUrl), input),
+        graphqlOperation(this._mutations.deleteVideoObject, input),
       );
       const vodAssetResponse: any = await this._api.graphql(
-        graphqlOperation(this._mutations.deleteVodAsset(this._config.signedUrl), input),
+        graphqlOperation(this._mutations.deleteVodAsset, input),
       );
       await Promise.all(this._extensions.map((extension) => this._storage.remove(`${vodAssetVideoId}.${extension}`, config)));
       return {
@@ -142,14 +152,14 @@ export default class VideoClass {
     try {
       if (metadatadict === undefined || metadatadict === null) {
         const vodAssetResponse: any = await this._api.graphql(
-          graphqlOperation(this._queries.getVodAsset(this._config.signedUrl), {
+          graphqlOperation(this._queries.getVodAsset, {
             id: vodAssetVideoId,
           }),
         );
         return vodAssetResponse;
       }
       const vodAssetResponse: any = await this._api.graphql(
-        graphqlOperation(this._mutations.updateVodAsset(this._config.signedUrl), {
+        graphqlOperation(this._mutations.updateVodAsset, {
           input: { id: vodAssetVideoId, ...metadatadict },
         }),
       );
@@ -161,7 +171,7 @@ export default class VideoClass {
 
   public async playback(vodAssetVideoId: string, config?: PlayerbackConfig) {
     const vodAssetResponse: any = await this._api.graphql(
-      graphqlOperation(this._queries.getVodAsset(this._config.signedUrl), {
+      graphqlOperation(this._queries.getVodAsset, {
         id: vodAssetVideoId,
       }),
     );

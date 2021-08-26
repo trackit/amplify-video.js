@@ -21,9 +21,9 @@ export interface MetadataDict {
 }
 
 export interface Mutation {
-  [index: string]: (signedUrl: boolean) => string;
+  [index: string]: string;
 }
 
 export interface Query {
-  [index: string]: (signedUrl: boolean) => string;
+  [index: string]: string;
 }
