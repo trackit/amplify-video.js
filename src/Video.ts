@@ -57,12 +57,12 @@ export default class VideoClass {
     Amplify.register(this._analytics);
     this._analytics.addPluggable(new AWSKinesisProvider());
 
-    this._mutations = Object.entries(Mutations).reduce((acc, val) => {
-      acc[val[0]] = val[1](this._config.signedUrl);
+    this._mutations = Object.entries(Mutations).reduce((acc, [mutationKey, mutationFunc]) => {
+      acc[mutationKey] = mutationFunc(this._config.signedUrl);
       return acc;
     }, {});
-    this._queries = Object.entries(Queries).reduce((acc, val) => {
-      acc[val[0]] = val[1](this._config.signedUrl);
+    this._queries = Object.entries(Queries).reduce((acc, [queryKey, queryFunc]) => {
+      acc[queryKey] = queryFunc(this._config.signedUrl);
       return acc;
     }, {});
 
