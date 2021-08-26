@@ -21,18 +21,9 @@ export interface MetadataDict {
 }
 
 export interface Mutation {
-  createVideoObject(): string;
-  createVodAsset(): string;
-  deleteVideoObject(): string;
-  deleteVodAsset(): string;
-  updateVodAsset(): string;
+  [index: string]: (signedUrl: boolean) => string;
 }
 
 export interface Query {
-  getVodAsset(): string;
-}
-
-export interface AbstractFactory {
-  createMutation(): Mutation;
-  createQuery(): Query;
+  [index: string]: (signedUrl: boolean) => string;
 }

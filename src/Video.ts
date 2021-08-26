@@ -5,9 +5,9 @@ import { API, graphqlOperation } from '@aws-amplify/api';
 import { Auth } from '@aws-amplify/auth';
 import { Analytics, AWSKinesisProvider } from '@aws-amplify/analytics';
 import {
-  AbstractFactory, MetadataDict, PlayerbackConfig, StorageConfig,
+  MetadataDict, Mutation, Query, PlayerbackConfig, StorageConfig,
 } from './Interfaces';
-import { TokenFactory, OwnerFactory } from './graphql/Factory';
+import { Mutations, Queries } from './graphql';
 import VideoAnalytics from './Analytics';
 import PlayTracking from './Tracking/Play';
 
@@ -21,7 +21,8 @@ export default class VideoClass {
   private _analytics: typeof Analytics;
   private _storage: StorageClass;
   private _extensions: Array<string>;
-  private _factory: AbstractFactory;
+  private _mutations: Mutation;
+  private _queries: Query;
 
   constructor() {
     this._config = {};
@@ -30,6 +31,8 @@ export default class VideoClass {
     this._api = API;
     this._analytics = Analytics;
     this._extensions = ['mpg', 'mp4', 'm2ts', 'mov'];
+    this._mutations = Mutations;
+    this._queries = Queries;
     console.log('Updated');
   }
 
@@ -53,12 +56,6 @@ export default class VideoClass {
     Amplify.register(this._storage);
     Amplify.register(this._analytics);
     this._analytics.addPluggable(new AWSKinesisProvider());
-
-    if (this._config.signedUrl) {
-      this._factory = new OwnerFactory();
-    } else {
-      this._factory = new TokenFactory();
-    }
     return this._config;
   }
 
@@ -92,10 +89,10 @@ export default class VideoClass {
 
     try {
       const videoObjectResponse: any = await this._api.graphql(
-        graphqlOperation(this._factory.createMutation().createVideoObject(), videoObject),
+        graphqlOperation(this._mutations.createVideoObject(this._config.signedUrl), videoObject),
       );
       const vodAssetResponse: any = await this._api.graphql(
-        graphqlOperation(this._factory.createMutation().createVodAsset(), videoAsset),
+        graphqlOperation(this._mutations.createVodAsset(this._config.signedUrl), videoAsset),
       );
       const storageResponse: any = await this._storage.put(`${uuid}.${fileExtension[fileExtension.length - 1]}`, file, config);
       return {
@@ -124,10 +121,10 @@ export default class VideoClass {
 
     try {
       const videoObjectResponse: any = await this._api.graphql(
-        graphqlOperation(this._factory.createMutation().deleteVideoObject(), input),
+        graphqlOperation(this._mutations.deleteVideoObject(this._config.signedUrl), input),
       );
       const vodAssetResponse: any = await this._api.graphql(
-        graphqlOperation(this._factory.createMutation().deleteVodAsset(), input),
+        graphqlOperation(this._mutations.deleteVodAsset(this._config.signedUrl), input),
       );
       await Promise.all(this._extensions.map((extension) => this._storage.remove(`${vodAssetVideoId}.${extension}`, config)));
       return {
@@ -145,13 +142,16 @@ export default class VideoClass {
     try {
       if (metadatadict === undefined || metadatadict === null) {
         const vodAssetResponse: any = await this._api.graphql(
-          graphqlOperation(this._factory.createQuery().getVodAsset(), { id: vodAssetVideoId }),
+          graphqlOperation(this._queries.getVodAsset(this._config.signedUrl), {
+            id: vodAssetVideoId,
+          }),
         );
         return vodAssetResponse;
       }
       const vodAssetResponse: any = await this._api.graphql(
-        graphqlOperation(this._factory.createMutation()
-          .updateVodAsset(), { input: { id: vodAssetVideoId, ...metadatadict } }),
+        graphqlOperation(this._mutations.updateVodAsset(this._config.signedUrl), {
+          input: { id: vodAssetVideoId, ...metadatadict },
+        }),
       );
       return vodAssetResponse;
     } catch (error) {
@@ -161,7 +161,9 @@ export default class VideoClass {
 
   public async playback(vodAssetVideoId: string, config?: PlayerbackConfig) {
     const vodAssetResponse: any = await this._api.graphql(
-      graphqlOperation(this._factory.createQuery().getVodAsset(), { id: vodAssetVideoId }),
+      graphqlOperation(this._queries.getVodAsset(this._config.signedUrl), {
+        id: vodAssetVideoId,
+      }),
     );
     console.log(vodAssetResponse.data);
     const { id } = vodAssetResponse.data.getVodAsset;

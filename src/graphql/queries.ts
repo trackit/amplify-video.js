@@ -1,8 +1,5 @@
-import { Query } from '../../Interfaces';
-
-export default class TokenQuery implements Query {
-  public getVodAsset() {
-    return `
+export default {
+  getVodAsset: (signedUrl) => `
     query GetVodAsset($id: ID!) {
       getVodAsset(id: $id) {
         id
@@ -10,13 +7,14 @@ export default class TokenQuery implements Query {
         description
         video {
           id
+          ${signedUrl ? 'owner' : ''}
           createdAt
           updatedAt
         }
+        ${signedUrl ? 'owner' : ''}
         createdAt
         updatedAt
       }
     }
-  `;
-  }
-}
+  `,
+};
