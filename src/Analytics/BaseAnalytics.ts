@@ -27,49 +27,116 @@ interface CurrentVideo {
   packageType: null;
   avgBitrate: number;
   duration: number;
-  resolution: null;
+  resolution: null | string;
   frameRate: number;
   bufferStarted: number;
   isBuffering: boolean;
 }
 
+interface CustomNavigator extends Navigator {
+  mozConnection?: any;
+  webkitConnection?: any;
+}
+
+interface TimeToFirstFrame {
+  playbackAttr: any;
+  time: number;
+  cdn_request_id: string;
+  rtt: number;
+}
+
+interface LoadedData {
+  duration: number;
+  packageType: string;
+  playbackAttr: any;
+  cdn_request_id: string;
+  rtt: string;
+}
+
+interface BufferCompleted {
+  cdn_request_id: string;
+  rtt: string;
+}
+
+interface Step {
+  playbackAttr: any;
+  packageType: string;
+  time: number;
+}
+
+interface TimeUpdate {
+  time: number;
+  duration: number;
+  cdn_request_id: string;
+  rtt: string;
+}
+
+interface Seeked {
+  currentTime: number;
+  cdn_request_id: string;
+  rtt: string;
+}
+
+interface UpdateSeekStatus {
+  currentTime: number;
+  timeTakenToSeek: number;
+  cdn_request_id: string;
+  rtt: string;
+}
+
+interface Ended {
+  currentTime: number;
+  duration: number;
+}
+
+interface ErrorOccured {
+  time: number;
+  cdn_request_id: string;
+  error?: string;
+}
+
 abstract class BaseAnalytics {
   private readonly _instance: typeof Analytics;
   private readonly _logger: Logger;
-  private readonly _currentVideo: CurrentVideo;
+  private readonly _navigator: CustomNavigator;
   private readonly _metricValues;
+  private _currentVideo: CurrentVideo;
+  private _connectionType;
+  private _commonAttr;
+  private _error;
   private _config: any;
   private _videoPlayer: HTMLMediaElement;
   protected MetricType: typeof MetricType;
 
-  abstract play();
+  abstract play(playlistType?: string);
   abstract pause();
-  abstract ended();
-  abstract stop();
-  abstract errorOccured();
-  abstract parseResolution();
+  abstract ended(params: Ended);
+  abstract stop(time?: number);
+  abstract errorOccured(params: ErrorOccured);
 
-  abstract loadedData();
+  abstract loadeddata(params: LoadedData);
   abstract loadedStarted();
-  abstract timeToFirstFrame();
+  // TODO: define variables
 
-  abstract buffering();
-  abstract bufferCompleted();
+  abstract buffering(time?: number);
+  abstract bufferCompleted(params: BufferCompleted);
 
-  abstract step();
-  abstract timeUpdate();
-  abstract captureStreamingLogs();
+  abstract step(params: Step);
+  abstract timeUpdate(params: TimeUpdate);
 
-  abstract seeked();
+  abstract seeked(params: Seeked);
   abstract seeking();
-  abstract updateSeekStatus(currentTime, timeTakenToSeek);
+  abstract updateSeekStatus(params: UpdateSeekStatus);
 
   constructor(config: any) {
     this._instance = Analytics;
     this._config = config;
     this._logger = new Logger('Analytics');
     this._currentVideo = this.resetVideo('');
+    this._commonAttr = {};
+    this._navigator = navigator;
     this._metricValues = MetricValues;
+    this._connectionType = this.getConnectionType();
     this.MetricType = MetricType;
     this.configure(config);
   }
@@ -94,8 +161,32 @@ abstract class BaseAnalytics {
     return this._currentVideo;
   }
 
+  get commonAttr() {
+    return this._commonAttr;
+  }
+
+  get error() {
+    return this._error;
+  }
+
+  set error(error) {
+    this._error = error;
+  }
+
+  set commonAttr(attr) {
+    this._commonAttr = attr;
+  }
+
   set videoPlayer(videoPlayer: HTMLMediaElement) {
     this._videoPlayer = videoPlayer;
+  }
+
+  set connectionType(value) {
+    this._connectionType = value;
+  }
+
+  get connectionType() {
+    return this._connectionType;
   }
 
   protected getCallerName() {
@@ -112,6 +203,25 @@ abstract class BaseAnalytics {
 
   protected log(data) {
     console.log(this.getCallerName(), data);
+  }
+
+  protected getConnectionType() {
+    // eslint-disable-next-line max-len
+    // eslint-disable-next-line operator-linebreak
+    const connection =
+      this._navigator.connection ||
+      this._navigator.mozConnection ||
+      this._navigator.webkitConnection;
+    return {
+      type: connection
+        ? connection.type || connection.effectiveType
+        : 'not available',
+      rtt: connection ? connection.rtt : -1,
+    };
+  }
+
+  protected parseResolution(playbackAttr) {
+    return `${playbackAttr.RESOLUTION.width} x ${playbackAttr.RESOLUTION.height}`;
   }
 
   private resetVideo(videoId: string): CurrentVideo {
@@ -133,37 +243,6 @@ abstract class BaseAnalytics {
       bufferStarted: 0,
       isBuffering: false,
     };
-  }
-
-  // TODO: Move to Analytics class
-  protected updateBufferStatus(
-    bufferType,
-    timeTakenToBuffer,
-    time,
-    // cdn_request_id,
-    // rtt,
-  ) {
-    const metricValue = this.buildMetric(this.MetricType.BUFFER, [
-      bufferType,
-      time,
-      // rtt,
-      // connectionType.type,
-      timeTakenToBuffer,
-      // cdn_request_id,
-    ]);
-    this.log(metricValue);
-    this.log(`Completed ${bufferType} at : ${new Date().toLocaleTimeString()}`);
-    this.log(`${bufferType} ready in : ${timeTakenToBuffer} ms`);
-    // return sendToAWS(metricValue);
-  }
-
-  protected firstBufferCompleted() {
-    const timeTakenToBuffer = Date.now() - this.currentVideo.loadStarted;
-    return this.updateBufferStatus(
-      'FirstBuffer',
-      timeTakenToBuffer,
-      this.currentVideo.currentTime,
-    );
   }
 
   protected buildMetric(metricName: string, args: Array<any>) {
