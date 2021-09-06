@@ -1,5 +1,5 @@
 export default {
-  createVideoObject: (signedUrl) => `
+  createVideoObject: (signedUrl: boolean) => `
     mutation CreateVideoObject(
       $input: CreateVideoObjectInput!
       $condition: ModelVideoObjectConditionInput
@@ -12,7 +12,7 @@ export default {
       }
     }
   `,
-  createVodAsset: (signedUrl) => `
+  createVodAsset: (signedUrl: boolean) => `
     mutation CreateVodAsset(
       $input: CreateVodAssetInput!
       $condition: ModelVodAssetConditionInput
@@ -33,7 +33,7 @@ export default {
       }
     }
   `,
-  deleteVideoObject: (signedUrl) => `
+  deleteVideoObject: (signedUrl: boolean) => `
     mutation DeleteVideoObject(
       $input: DeleteVideoObjectInput!
       $condition: ModelVideoObjectConditionInput
@@ -46,7 +46,7 @@ export default {
       }
     }
   `,
-  deleteVodAsset: (signedUrl) => `
+  deleteVodAsset: (signedUrl: boolean) => `
     mutation DeleteVodAsset(
       $input: DeleteVodAssetInput!
       $condition: ModelVodAssetConditionInput
@@ -67,7 +67,7 @@ export default {
       }
     }
   `,
-  updateVodAsset: (signedUrl) => `
+  updateVodAsset: (signedUrl: boolean) => `
     mutation UpdateVodAsset(
       $input: UpdateVodAssetInput!
       $condition: ModelvodAssetConditionInput

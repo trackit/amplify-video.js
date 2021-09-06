@@ -1,59 +1,21 @@
 import Amplify from '@aws-amplify/core';
 import VideoBase from './VideoBase';
 import {
-  MetadataDict, Mutation, Query, PlayerbackConfig, StorageConfig,
+  MetadataDict, PlayerbackConfig, StorageConfig,
 } from './Interfaces';
-import { Mutations, Queries } from './graphql';
-import VideoAnalytics from './Analytics';
-import PlayTracking from './Tracking/Play';
 
 export default class VideoClass extends VideoBase {
   private _config: any;
-  private _bucketConfig: {};
-  private _auth: typeof Auth;
-  private _api: typeof API;
-  private _analytics: typeof Analytics;
-  private _storage: StorageClass;
-  private _extensions: Array<string>;
-  private _mutations: Mutation;
-  private _queries: Query;
 
   constructor() {
     super();
     this._config = {};
-    this._storage = new StorageClass();
-    this._auth = Auth;
-    this._api = API;
-    this._analytics = Analytics;
-    this._extensions = ['mpg', 'mp4', 'm2ts', 'mov'];
-    this._mutations = {};
-    this._queries = {};
-    console.log('Updated');
   }
 
   public configure(config?: any) {
     super.configure(config);
     this._config = config;
     Amplify.configure(config);
-    this._analytics.configure({
-      AWSKinesis: { region: this._config.aws_project_region },
-      AWSKinesisFirehose: { region: this._config.aws_project_region },
-    });
-    Amplify.register(this._auth);
-    Amplify.register(this._api);
-    Amplify.register(this._storage);
-    Amplify.register(this._analytics);
-    this._analytics.addPluggable(new AWSKinesisProvider());
-
-    this._mutations = Object.entries(Mutations).reduce((acc, [mutationKey, mutationFunc]) => {
-      acc[mutationKey] = mutationFunc(this._config.signedUrl);
-      return acc;
-    }, {});
-    this._queries = Object.entries(Queries).reduce((acc, [queryKey, queryFunc]) => {
-      acc[queryKey] = queryFunc(this._config.signedUrl);
-      return acc;
-    }, {});
-
     return this._config;
   }
 
@@ -81,13 +43,25 @@ export default class VideoClass extends VideoBase {
     };
 
     try {
-      const videoObjectResponse: any = await this._api.graphql(
-        graphqlOperation(this._mutations.createVideoObject, videoObject),
-      );
-      const vodAssetResponse: any = await this._api.graphql(
-        graphqlOperation(this._mutations.createVodAsset, videoAsset),
-      );
-      const storageResponse: any = await this._storage.put(`${uuid}.${fileExtension[fileExtension.length - 1]}`, file, config);
+      const params = {
+        filename: `${uuid}.${fileExtension[fileExtension.length - 1]}`,
+        file,
+        config,
+      };
+      const responses: any = await Promise.all([
+        await this.storage.put(params),
+        await this.api.graphQlOperation({
+          input: videoObject,
+          mutation: this.mutations.createVideoObject,
+        }),
+        await this.api.graphQlOperation({
+          input: videoAsset,
+          mutation: this.mutations.createVodAsset,
+        }),
+      ]);
+      const { key } = responses[0];
+      const { createVideoObject } = responses[1].data;
+      const { createVodAsset } = responses[2].data;
       return {
         data: {
           createVideoObject,
@@ -111,11 +85,23 @@ export default class VideoClass extends VideoBase {
     };
 
     try {
-      const videoObjectResponse: any = await this._api.graphql(
-        graphqlOperation(this._mutations.deleteVideoObject, input),
-      );
-      const vodAssetResponse: any = await this._api.graphql(
-        graphqlOperation(this._mutations.deleteVodAsset, input),
+      const responses: any = await Promise.all([
+        await this.api.graphQlOperation({
+          input,
+          mutation: this.mutations.deleteVideoObject,
+        }),
+        await this.api.graphQlOperation({
+          input,
+          mutation: this.mutations.deleteVodAsset,
+        }),
+      ]);
+      await Promise.all(
+        this.storage.extensions.map((extension) =>
+          this.storage.remove({
+            filename: `${vodAssetVideoId}.${extension}`,
+            config,
+          }),
+        ),
       );
       const { deleteVideoObject } = responses[0].data;
       const { deleteVodAsset } = responses[1].data;
@@ -133,18 +119,16 @@ export default class VideoClass extends VideoBase {
   public async metadata(vodAssetVideoId: string, metadatadict?: MetadataDict) {
     try {
       if (metadatadict === undefined || metadatadict === null) {
-        const vodAssetResponse: any = await this._api.graphql(
-          graphqlOperation(this._queries.getVodAsset, {
-            id: vodAssetVideoId,
-          }),
-        );
+        const vodAssetResponse: any = await this.api.graphQlOperation({
+          mutation: this.queries.getVodAsset,
+          input: { id: vodAssetVideoId },
+        });
         return vodAssetResponse;
       }
-      const vodAssetResponse: any = await this._api.graphql(
-        graphqlOperation(this._mutations.updateVodAsset, {
-          input: { id: vodAssetVideoId, ...metadatadict },
-        }),
-      );
+      const vodAssetResponse: any = await this.api.graphQlOperation({
+        mutation: this.queries.updateVodAsset,
+        input: { id: vodAssetVideoId, ...metadatadict },
+      });
       return vodAssetResponse;
     } catch (error) {
       return this.logger.error(error);
@@ -152,15 +136,28 @@ export default class VideoClass extends VideoBase {
   }
 
   public async playback(vodAssetVideoId: string, config?: PlayerbackConfig) {
-    const vodAssetResponse: any = await this._api.graphql(
-      graphqlOperation(this._queries.getVodAsset, {
-        id: vodAssetVideoId,
-      }),
-    );
-    console.log(vodAssetResponse.data);
-    const { id } = vodAssetResponse.data.getVodAsset;
-    if (!this._config.signedUrl) {
-      const { token } = vodAssetResponse.data.getVodAsset.video;
+    const vodAssetResponse: any = await this.api.graphQlOperation({
+      mutation: this.queries.getVodAsset,
+      input: { id: vodAssetVideoId },
+    });
+    try {
+      if (vodAssetResponse.data.getVodAsset === null) {
+        this.logger.error('Vod asset video ID not found');
+        return {
+          data: null,
+          error: 'Vod asset video ID not found',
+        };
+      }
+      const { id } = vodAssetResponse.data.getVodAsset;
+      if (this._config.signedUrl) {
+        const { token } = vodAssetResponse.data.getVodAsset.video;
+        return {
+          data: {
+            playbackUrl: `https://${config.awsOutputVideo}/${id}/${id}.m3u8`,
+            token,
+          },
+        };
+      }
       return {
         data: {
           playbackUrl: `${config.awsOutputVideo}/${id}/${id}.m3u8`,

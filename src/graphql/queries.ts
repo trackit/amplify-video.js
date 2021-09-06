@@ -1,5 +1,5 @@
 export default {
-  getVodAsset: (signedUrl) => `
+  getVodAsset: (signedUrl: boolean) => `
     query GetVodAsset($id: ID!) {
       getVodAsset(id: $id) {
         id
