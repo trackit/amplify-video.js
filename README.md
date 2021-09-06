@@ -191,6 +191,146 @@ export default class VideoPlayer extends React.Component<VideoPlayerPropsInferfa
 }
 ```
 
+### AWS Glue table schema
+```yml
+Columns:
+      - Name: MetricType
+        Type: string
+      - Name: user_id
+        Type: string
+      - Name: video_id
+        Type: string
+      - Name: at
+        Type: double
+      - Name: timestamp
+        Type: bigint
+      - Name: playlist_type
+        Type: string
+      - Name: time_millisecond
+        Type: double
+      - Name: duration
+        Type: double
+      - Name: buffer_type
+        Type: string
+      - Name: direction
+        Type: string
+      - Name: package
+        Type: string
+      - Name: resolution
+        Type: string
+      - Name: fps
+        Type: double
+      - Name: bitrate_from
+        Type: int
+      - Name: bitrate_to
+        Type: int
+      - Name: rtt
+        Type: int
+      - Name: avg_bitrate
+        Type: int
+      - Name: cdn_tracking_id
+        Type: string
+      - Name: message
+        Type: string
+      - Name: seek_from
+        Type: double
+      - Name: seek_to
+        Type: double
+      - Name: connection_type
+        Type: string
+```
+
+```json
+{
+    "Type": "string",
+    "Name": "MetricType"
+},
+{
+    "Type": "string",
+    "Name": "user_id"
+},
+{
+    "Type": "string",
+    "Name": "video_id"
+},
+{
+    "Type": "double",
+    "Name": "at"
+},
+{
+    "Type": "bigint",
+    "Name": "timestamp"
+},
+{
+    "Type": "string",
+    "Name": "playlist_type"
+},
+{
+    "Type": "double",
+    "Name": "time_millisecond"
+},
+{
+    "Type": "double",
+    "Name": "duration"
+},
+{
+    "Type": "string",
+    "Name": "buffer_type"
+},
+{
+    "Type": "string",
+    "Name": "direction"
+},
+{
+    "Type": "string",
+    "Name": "package"
+},
+{
+    "Type": "string",
+    "Name": "resolution"
+},
+{
+    "Type": "double",
+    "Name": "fps"
+},
+{
+    "Type": "int",
+    "Name": "bitrate_from"
+},
+{
+    "Type": "int",
+    "Name": "bitrate_to"
+},
+{
+    "Type": "int",
+    "Name": "rtt"
+},
+{
+    "Type": "int",
+    "Name": "avg_bitrate"
+},
+{
+    "Type": "string",
+    "Name": "cdn_tracking_id"
+},
+{
+    "Type": "string",
+    "Name": "message"
+},
+{
+    "Type": "double",
+    "Name": "seek_from"
+},
+{
+    "Type": "double",
+    "Name": "seek_to"
+},
+{
+    "Type": "string",
+    "Name": "connection_type"
+}
+```
+
 # Setup Analytics demo
 
 1. Bootstrap your app:

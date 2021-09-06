@@ -5,7 +5,7 @@ export default class OwnerMutation implements Mutation {
     return `
           mutation CreateVideoObject(
             $input: CreateVideoObjectInput!
-            $condition: ModelvideoObjectConditionInput
+            $condition: ModelVideoObjectConditionInput
           ) {
             createVideoObject(input: $input, condition: $condition) {
               id
@@ -21,7 +21,7 @@ export default class OwnerMutation implements Mutation {
     return `
           mutation CreateVodAsset(
             $input: CreateVodAssetInput!
-            $condition: ModelvodAssetConditionInput
+            $condition: ModelVodAssetConditionInput
           ) {
             createVodAsset(input: $input, condition: $condition) {
               id
@@ -45,7 +45,7 @@ export default class OwnerMutation implements Mutation {
     return `
           mutation DeleteVideoObject(
             $input: DeleteVideoObjectInput!
-            $condition: ModelvideoObjectConditionInput
+            $condition: ModelVideoObjectConditionInput
           ) {
             deleteVideoObject(input: $input, condition: $condition) {
               id
