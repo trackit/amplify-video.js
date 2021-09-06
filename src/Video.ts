@@ -106,10 +106,12 @@ export default class VideoClass extends VideoBase {
         }),
       ]);
       await Promise.all(
-        this.storage.extensions.map((extension) => this.storage.remove({
-          filename: `${vodAssetVideoId}.${extension}`,
-          config,
-        })),
+        this.storage.extensions.map((extension) =>
+          this.storage.remove({
+            filename: `${vodAssetVideoId}.${extension}`,
+            config,
+          }),
+        ),
       );
       const { deleteVideoObject } = responses[0].data;
       const { deleteVodAsset } = responses[1].data;
@@ -176,26 +178,69 @@ export default class VideoClass extends VideoBase {
     }
   }
 
-  public async record(streamName: string, provider: string) {
-    const videoPlayers = window.document.getElementsByTagName('video');
+  public async record(streamName: string, provider: string, instance: any) {
     this.analytics.config = {
       streamName,
       provider,
     };
-    Array.from(videoPlayers).forEach((videoPlayer) => {
-      this.analytics.videoPlayer = videoPlayer;
-      videoPlayer.addEventListener('play', () => this.analytics.play());
-      videoPlayer.addEventListener('loadstart', () => null);
-      videoPlayer.addEventListener('loadeddata', () => this.analytics.loadedData());
-      videoPlayer.addEventListener('waiting', () => this.analytics.buffering());
-      videoPlayer.addEventListener('canplaythrough', () => this.analytics.bufferCompleted());
-      videoPlayer.addEventListener('timeupdate', () => null);
-      videoPlayer.addEventListener('seeking', () => this.analytics.seeking());
-      videoPlayer.addEventListener('seeked', () => this.analytics.seeked());
-      videoPlayer.addEventListener('mediachange', () => this.analytics.step());
-      videoPlayer.addEventListener('error', () => null);
-      videoPlayer.addEventListener('pause', () => this.analytics.pause());
-      videoPlayer.addEventListener('ended', () => null);
+    this.analytics.videoPlayer = instance;
+    instance.player.on('play', () =>
+      this.analytics.play(this.analytics.getPlaylistType(instance.player)),
+    );
+    instance.player.on('loadstart', () => {
+      this.analytics.loadedStarted();
+    });
+    instance.player.on('loadeddata', () => {
+      this.analytics.loadedData({
+        duration: instance.player.duration(),
+        packageType: this.analytics.getPackageType(instance.player),
+        playbackAttr: instance.player.tech().vhs.playlists.media_.attributes,
+      });
+      console.log('currentVideo', this.analytics.currentVideo);
+    });
+    instance.player.on('waiting', () => {
+      this.analytics.buffering(instance.player.currentTime());
+    });
+    instance.player.on('canplaythrough', () => {
+      this.analytics.bufferCompleted();
+    });
+    instance.player.on('timeupdate', () => {
+      const intPlayedTime = parseInt(instance.player.currentTime(), 10);
+      const everyFiveSec = intPlayedTime % 5 === 0 && intPlayedTime !== 0;
+      // process it only every 5 seconds.
+      if (everyFiveSec) {
+        this.analytics.timeUpdate({
+          duration: instance.player.duration(),
+          time: instance.player.currentTime(),
+        });
+      }
+    });
+    instance.player.on('seeking', () => this.analytics.seeking());
+    instance.player.on('seeked', () => {
+      this.analytics.seeked({
+        currentTime: instance.player.currentTime(),
+      });
+    });
+    instance.player.on('mediachange', () => {
+      this.analytics.step({
+        playbackAttr:
+          instance.player.tech(true).vhs.playlists.media_.attributes,
+        packageType: this.analytics.getPackageType(instance.player),
+        time: instance.player.currentTime(),
+      });
+    });
+    instance.player.on('error', (err) => {
+      this.analytics.errorOccured({
+        time: instance.player.currentTime(),
+        error: err,
+      });
+    });
+    instance.player.on('pause', () => this.analytics.pause());
+    instance.player.on('ended', () => {
+      this.analytics.ended({
+        currentTime: instance.player.currentTime(),
+        duration: instance.player.duration(),
+      });
     });
   }
 }

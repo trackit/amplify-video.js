@@ -1,99 +1,19 @@
 import Amplify, { ConsoleLogger as Logger } from '@aws-amplify/core';
 import { Analytics, AWSKinesisProvider } from '@aws-amplify/analytics';
 import MetricValues from './MetricValues';
-
-enum MetricType {
-  PLAY = 'PLAY',
-  FIRSTFRAME = 'FIRSTFRAME',
-  SEEK = 'SEEK',
-  BUFFER = 'BUFFER',
-  STREAM = 'STREAM',
-  STEP = 'STEP',
-  PAUSE = 'PAUSE',
-  ERROR = 'ERROR',
-  STOP = 'STOP',
-}
-
-interface CurrentVideo {
-  videoId: string;
-  previousTime: number;
-  currentTime: number;
-  seekStart: null | number;
-  seekStartTime: number;
-  seekEndTime: number;
-  loadStarted: number;
-  dataLoaded: null | number;
-  percentSeen: number;
-  packageType: null;
-  avgBitrate: number;
-  duration: number;
-  resolution: null | string;
-  frameRate: number;
-  bufferStarted: number;
-  isBuffering: boolean;
-}
-
-interface CustomNavigator extends Navigator {
-  mozConnection?: any;
-  webkitConnection?: any;
-}
-
-interface TimeToFirstFrame {
-  playbackAttr: any;
-  time: number;
-  cdn_request_id: string;
-  rtt: number;
-}
-
-interface LoadedData {
-  duration: number;
-  packageType: string;
-  playbackAttr: any;
-  cdn_request_id: string;
-  rtt: string;
-}
-
-interface BufferCompleted {
-  cdn_request_id: string;
-  rtt: string;
-}
-
-interface Step {
-  playbackAttr: any;
-  packageType: string;
-  time: number;
-}
-
-interface TimeUpdate {
-  time: number;
-  duration: number;
-  cdn_request_id: string;
-  rtt: string;
-}
-
-interface Seeked {
-  currentTime: number;
-  cdn_request_id: string;
-  rtt: string;
-}
-
-interface UpdateSeekStatus {
-  currentTime: number;
-  timeTakenToSeek: number;
-  cdn_request_id: string;
-  rtt: string;
-}
-
-interface Ended {
-  currentTime: number;
-  duration: number;
-}
-
-interface ErrorOccured {
-  time: number;
-  cdn_request_id: string;
-  error?: string;
-}
+import {
+  CurrentVideo,
+  CustomNavigator,
+  Ended,
+  ErrorOccured,
+  LoadedData,
+  MetricType,
+  Player,
+  Seeked,
+  Step,
+  TimeUpdate,
+  UpdateSeekStatus,
+} from '../Interfaces';
 
 abstract class BaseAnalytics {
   private readonly _instance: typeof Analytics;
@@ -108,25 +28,24 @@ abstract class BaseAnalytics {
   private _videoPlayer: HTMLMediaElement;
   protected MetricType: typeof MetricType;
 
-  abstract play(playlistType?: string);
-  abstract pause();
-  abstract ended(params: Ended);
-  abstract stop(time?: number);
-  abstract errorOccured(params: ErrorOccured);
+  abstract play(playlistType?: string): void;
+  abstract pause(): void;
+  abstract ended(params: Ended): void;
+  abstract stop(time?: number): void;
+  abstract errorOccured(params: ErrorOccured): void;
 
-  abstract loadeddata(params: LoadedData);
-  abstract loadedStarted();
-  // TODO: define variables
+  abstract loadedData(params: LoadedData): void;
+  abstract loadedStarted(): void;
 
-  abstract buffering(time?: number);
-  abstract bufferCompleted(params: BufferCompleted);
+  abstract buffering(time?: number): void;
+  abstract bufferCompleted(): void;
 
-  abstract step(params: Step);
-  abstract timeUpdate(params: TimeUpdate);
+  abstract step(params: Step): void;
+  abstract timeUpdate(params: TimeUpdate): void;
 
-  abstract seeked(params: Seeked);
-  abstract seeking();
-  abstract updateSeekStatus(params: UpdateSeekStatus);
+  abstract seeked(params: Seeked): void;
+  abstract seeking(): void;
+  abstract updateSeekStatus(params: UpdateSeekStatus): void;
 
   constructor(config: any) {
     this._instance = Analytics;
@@ -157,12 +76,24 @@ abstract class BaseAnalytics {
     return this._videoPlayer;
   }
 
+  set videoPlayer(videoPlayer: HTMLMediaElement) {
+    this._videoPlayer = videoPlayer;
+  }
+
   get currentVideo() {
     return this._currentVideo;
   }
 
+  set currentVideo(value) {
+    this._currentVideo = { ...this._currentVideo, ...value };
+  }
+
   get commonAttr() {
     return this._commonAttr;
+  }
+
+  set commonAttr(attr) {
+    this._commonAttr = attr;
   }
 
   get error() {
@@ -173,14 +104,6 @@ abstract class BaseAnalytics {
     this._error = error;
   }
 
-  set commonAttr(attr) {
-    this._commonAttr = attr;
-  }
-
-  set videoPlayer(videoPlayer: HTMLMediaElement) {
-    this._videoPlayer = videoPlayer;
-  }
-
   set connectionType(value) {
     this._connectionType = value;
   }
@@ -189,7 +112,7 @@ abstract class BaseAnalytics {
     return this._connectionType;
   }
 
-  protected getCallerName() {
+  protected getCallerName(): string {
     try {
       throw new Error();
     } catch (e) {
@@ -201,13 +124,11 @@ abstract class BaseAnalytics {
     }
   }
 
-  protected log(data) {
+  protected log(data: string): void {
     console.log(this.getCallerName(), data);
   }
 
-  protected getConnectionType() {
-    // eslint-disable-next-line max-len
-    // eslint-disable-next-line operator-linebreak
+  protected getConnectionType(): Record<string, unknown> {
     const connection =
       this._navigator.connection ||
       this._navigator.mozConnection ||
@@ -220,8 +141,31 @@ abstract class BaseAnalytics {
     };
   }
 
-  protected parseResolution(playbackAttr) {
+  protected parseResolution(playbackAttr: Record<string, any>): string {
     return `${playbackAttr.RESOLUTION.width} x ${playbackAttr.RESOLUTION.height}`;
+  }
+
+  getSegmentInfo(player: Player): string {
+    // If video.js
+    const segmentDuration =
+      player.tech(true).vhs.playlists.media_.targetDuration;
+    const segmentIndex = Math.floor(player.currentTime() / segmentDuration);
+    // console.log("In timeupdate.segmentCount ",segmentIndex);
+    const segmentInfo =
+      player.tech(true).vhs.playlists.media_.segments[segmentIndex];
+    return segmentInfo;
+  }
+
+  getPackageType(player: Player): string {
+    return player.tech(true).vhs.masterPlaylistController_.sourceType_;
+  }
+
+  getPlaylistType(player: Player): string {
+    try {
+      return player.tech(true).vhs.playlists.media_.playlistType;
+    } catch (e) {
+      return 'LIVE';
+    }
   }
 
   private resetVideo(videoId: string): CurrentVideo {
@@ -245,7 +189,10 @@ abstract class BaseAnalytics {
     };
   }
 
-  protected buildMetric(metricName: string, args: Array<any>) {
+  protected buildMetric(
+    metricName: string,
+    args: Array<any>,
+  ): Record<string, any> {
     const metricObj = this._metricValues[metricName];
     Object.keys(metricObj).forEach((key, index) => {
       metricObj[key] = args[index];
@@ -263,13 +210,11 @@ abstract class BaseAnalytics {
     this._instance.addPluggable(new AWSKinesisProvider());
   }
 
-  protected record(data) {
+  protected record(metrics: any): void {
+    this.log(metrics);
     this.instance.record(
       {
-        data: {
-          date: new Date(),
-          ...data,
-        },
+        data: `${JSON.stringify(metrics)}\n`,
         streamName: this.config.streamName,
       },
       this.config.provider,

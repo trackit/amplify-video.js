@@ -1,9 +1,7 @@
 import BaseAnalytics from './BaseAnalytics';
 
-// TODO: Replace function parameters with object destructuration
-
 class VideoJS extends BaseAnalytics {
-  play(playlistType) {
+  play(playlistType?: string): void {
     this.log(`In play with playlistType ${playlistType}`);
     this.log(`Video Start at ${new Date().toLocaleTimeString()}`);
 
@@ -14,34 +12,29 @@ class VideoJS extends BaseAnalytics {
       this.currentVideo.currentTime,
       this.currentVideo.duration,
     ]);
-
-     
-    // return sendToAWS(calculatedMetric);
+    this.record(metricValue);
   }
 
-  loadedStarted() {
+  loadedStarted(): void {
     this.currentVideo.loadStarted = Date.now();
   }
 
-  private timeToFirstFrame({ playbackAttr, time, cdn_request_id, rtt }) {
+  private timeToFirstFrame({ playbackAttr, time }) {
     this.log(`Time to First Frame ${time}  ms`);
 
     this.connectionType = this.getConnectionType();
     const metricValue = this.buildMetric(this.MetricType.FIRSTFRAME, [
-      rtt,
       this.connectionType.type,
       this.currentVideo.packageType,
       this.currentVideo.resolution,
       playbackAttr['FRAME-RATE'],
       playbackAttr['AVERAGE-BANDWIDTH'],
       time,
-      cdn_request_id,
     ]);
-    // var calculatedMetric = Metric(metericName, metricValue);
     return metricValue;
   }
 
-  loadeddata({ duration, packageType, playbackAttr, cdn_request_id, rtt }) {
+  loadedData({ packageType, playbackAttr, duration }): void {
     this.currentVideo.packageType = packageType.toUpperCase();
     if (playbackAttr['AVERAGE-BANDWIDTH']) {
       this.currentVideo.avgBitrate = parseInt(
@@ -51,6 +44,7 @@ class VideoJS extends BaseAnalytics {
     } else {
       this.currentVideo.avgBitrate = 0;
     }
+    console.log('duration', duration);
     this.currentVideo.duration = duration;
     this.currentVideo.resolution = this.parseResolution(playbackAttr);
     this.currentVideo.frameRate = playbackAttr['FRAME-RATE'];
@@ -61,8 +55,6 @@ class VideoJS extends BaseAnalytics {
       this.timeToFirstFrame({
         playbackAttr,
         time: dataloadedTime - this.currentVideo.loadStarted,
-        cdn_request_id,
-        rtt,
       });
     }
     this.currentVideo.dataLoaded = dataloadedTime;
@@ -78,28 +70,22 @@ class VideoJS extends BaseAnalytics {
     this.currentVideo.bufferStarted = Date.now();
   }
 
-  bufferCompleted({ cdn_request_id, rtt }) {
+  bufferCompleted() {
     const time = this.currentVideo.currentTime;
     if (this.currentVideo.isBuffering) {
       const bufferingTime = Date.now() - this.currentVideo.bufferStarted;
-      this.updateBufferStatus(
-        'ScreenFreezedBuffer',
-        bufferingTime,
-        time,
-        cdn_request_id,
-        rtt,
-      );
+      this.updateBufferStatus('ScreenFreezedBuffer', bufferingTime, time);
     } else {
-      this.firstBufferCompleted(time, cdn_request_id, rtt);
+      this.firstBufferCompleted();
     }
     if (this.currentVideo.seekStart) {
-      this.seeked(this.currentVideo.previousTime);
+      this.seeked({ currentTime: this.currentVideo.previousTime });
     }
     this.currentVideo.isBuffering = false;
     return this.currentVideo.isBuffering;
   }
 
-  step({ playbackAttr, packageType, time }) {
+  step({ playbackAttr, packageType }) {
     let direction = null;
     let newAvgBitrate = 0;
     if (playbackAttr['AVERAGE-BANDWIDTH']) {
@@ -128,10 +114,10 @@ class VideoJS extends BaseAnalytics {
     ]);
     this.currentVideo.avgBitrate = newAvgBitrate;
     this.log(`Bitrate Step ${direction} at : ${this.currentVideo.currentTime}`);
-    // return sendToAWS(calculatedMetric);
+    this.record(metricValue);
   }
 
-  timeUpdate({ time, duration, cdn_request_id, rtt }) {
+  timeUpdate({ time }): void {
     const intPlayedTime = parseInt(time, 10);
 
     this.currentVideo.previousTime = this.currentVideo.currentTime;
@@ -145,13 +131,11 @@ class VideoJS extends BaseAnalytics {
         this.currentVideo.frameRate,
         this.currentVideo.avgBitrate,
         this.currentVideo.duration,
-        cdn_request_id,
-        rtt,
       );
     }
   }
 
-  seeking() {
+  seeking(): void {
     if (this.currentVideo.seekStart === null) {
       this.currentVideo.seekStart = this.currentVideo.previousTime;
       this.currentVideo.seekStartTime = Date.now();
@@ -159,30 +143,28 @@ class VideoJS extends BaseAnalytics {
     this.currentVideo.isBuffering = true;
   }
 
-  seeked({ currentTime, cdn_request_id, rtt }) {
+  seeked({ currentTime }) {
     const timeTakenToSeek = Date.now() - this.currentVideo.seekStartTime;
     this.log(
       `Seeked from ${this.currentVideo.seekStart} to ${currentTime} in ${timeTakenToSeek} ms`,
     );
-    this.updateSeekStatus(currentTime, timeTakenToSeek, cdn_request_id, rtt);
+    this.updateSeekStatus({ currentTime, timeTakenToSeek });
     this.currentVideo.seekStart = null;
     return this.currentVideo.seekStart;
   }
 
-  updateSeekStatus({ currentTime, timeTakenToSeek, cdn_request_id, rtt }) {
+  updateSeekStatus({ currentTime, timeTakenToSeek }) {
     this.connectionType = this.getConnectionType();
-    const metricValue = setMetricValue(this.MetricType.SEEK, [
+    const metricValue = this.buildMetric(this.MetricType.SEEK, [
       this.currentVideo.seekStart,
       currentTime,
-      rtt,
       this.connectionType.type,
       timeTakenToSeek,
-      cdn_request_id,
     ]);
-    // return sendToAWS(calculatedMetric);
+    this.record(metricValue);
   }
 
-  pause() {
+  pause(): void {
     // to avoid firing pause metric which is also called when video playback is //finished
     if (this.currentVideo.currentTime === this.currentVideo.duration) return;
 
@@ -191,19 +173,16 @@ class VideoJS extends BaseAnalytics {
       this.currentVideo.currentTime,
       this.currentVideo.duration,
     ]);
-    // return sendToAWS(calculatedMetric);
+    this.record(metricValue);
   }
 
-  ended({ currentTime, duration }) {
-    let text = '';
+  ended({ currentTime, duration }): void {
     if (currentTime === duration) {
-      text = 'Finished playing at';
       this.stop(currentTime);
     } else {
-      text = 'Video Ended with some error at ';
       this.errorOccured({
         time: currentTime,
-        cdn_request_id: text + new Date().toUTCString(),
+        error: null,
       });
     }
   }
@@ -221,20 +200,18 @@ class VideoJS extends BaseAnalytics {
       this.currentVideo.avgBitrate,
     ]);
 
-    // return sendToAWS(calculatedMetric);
+    this.record(metricValue);
   }
 
-  errorOccured({ time, cdn_request_id, error }) {
+  errorOccured({ time, error }) {
     const text = 'Some thing went wrong at ';
-    // displayMetrics(text, new Date().toLocaleTimeString());
     this.error = error || text + new Date().toUTCString();
 
     const metricValue = this.buildMetric(this.MetricType.ERROR, [
       time,
       'Error',
-      cdn_request_id,
     ]);
-    // return sendToAWS(calculatedMetric);
+    this.record(metricValue);
   }
 
   private captureStreamingLogs(
@@ -243,54 +220,50 @@ class VideoJS extends BaseAnalytics {
     fps,
     bitrate,
     duration,
-    cdn_request_id,
-    rtt,
   ) {
     this.connectionType = this.getConnectionType();
     const metricValue = this.buildMetric(this.MetricType.STREAM, [
       this.currentVideo.currentTime,
-      rtt,
       this.connectionType.type,
       stream_package,
       resolution,
       fps,
       bitrate,
       duration,
-      cdn_request_id,
     ]);
     this.log(`Streaming at ${this.currentVideo.currentTime}`);
-    // return sendToAWS(calculatedMetric);
+    this.record(metricValue);
   }
 
   private updateBufferStatus(
     bufferType,
     timeTakenToBuffer,
     time,
-    cdn_request_id,
-    rtt,
+    // cdn_request_id,
+    // rtt,
   ) {
     this.connectionType = this.getConnectionType();
     const metricValue = this.buildMetric(this.MetricType.BUFFER, [
       bufferType,
       time,
-      rtt,
+      // rtt,
       this.connectionType.type,
       timeTakenToBuffer,
-      cdn_request_id,
+      // cdn_request_id,
     ]);
     // displayMetrics("Completed " + bufferType + " at :", new Date().toLocaleTimeString());
     this.log(`${bufferType} ready in ${timeTakenToBuffer} ms`);
-    // return sendToAWS(metricValue);
+    this.record(metricValue);
   }
 
-  private firstBufferCompleted(time, cdn_request_id, rtt) {
+  private firstBufferCompleted() {
     const timeTakenToBuffer = Date.now() - this.currentVideo.loadStarted;
     return this.updateBufferStatus(
       'FirstBuffer',
       timeTakenToBuffer,
       this.currentVideo.currentTime,
-      cdn_request_id,
-      rtt,
+      // cdn_request_id,
+      // rtt,
     );
   }
 }

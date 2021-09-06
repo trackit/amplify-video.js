@@ -13,7 +13,6 @@ class Storage extends BaseStorage {
     this.config = {
       ...config,
     };
-    console.log(this.config);
     return this.instance.remove(filename, this.config);
   }
 

@@ -1,29 +1,42 @@
 {
-	"root": true,
-	"parser": "@typescript-eslint/parser",
-	"plugins": ["jest", "@typescript-eslint", "prettier"],
-	"extends": ["airbnb-typescript/base", "plugin:jest/recommended"],
-	"parserOptions": {
-	   "project": "./tsconfig.json"
-	},
-    "rules": {
-    	"no-param-reassign": "off",
-    	"no-return-await" : "off",
-    	"no-continue": "off",
-    	"no-await-in-loop": "off",
-    	"no-use-before-define": "off",
-    	"no-console": "off",
-    	"global-require": "off",
-    	"import/no-dynamic-require": "off",
-		"consistent-return": "off",
-		"no-plusplus": "off",
-		"no-underscore-dangle": ["error", { "allowAfterThis": true }],
-		"max-classes-per-file": ["error", 3],
-		"class-methods-use-this": "off",
-		"lines-between-class-members": "off",
-		"@typescript-eslint/lines-between-class-members": ["off"]
-	},
-	"env": {
-		"jest/globals": true
-	}
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["jest", "@typescript-eslint"],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "prettier"
+  ],
+  "parserOptions": {
+    "project": "./tsconfig.json"
+  },
+  
+  "rules": {
+    "no-param-reassign": "off",
+    "no-return-await": "off",
+    "no-continue": "off",
+    "no-await-in-loop": "off",
+    "no-use-before-define": "off",
+    "no-console": "off",
+    "global-require": "off",
+    "import/no-dynamic-require": "off",
+    "consistent-return": "off",
+    "no-plusplus": "off",
+    "no-underscore-dangle": [
+      "off",
+      {
+        "allowAfterThis": true,
+        "allow": ["masterPlaylistController_", "sourceType_"]
+      }
+    ],
+    "max-classes-per-file": ["error", 3],
+    "class-methods-use-this": "off",
+    "lines-between-class-members": "off",
+    "@typescript-eslint/lines-between-class-members": ["off"],
+    "@typescript-eslint/no-explicit-any": ["off"],
+    "@typescript-eslint/explicit-module-boundary-types": ["off"]
+  },
+  "env": {
+    "jest/globals": true
+  }
 }

@@ -4,11 +4,10 @@ import Auth from './Auth/Auth';
 import Storage from './Storage/Storage';
 import Api from './Api/Api';
 import BaseAnalytics from './Analytics/BaseAnalytics';
-import Vanilla from './Analytics/Vanilla';
 import VideoJS from './Analytics/VideoJS';
 
 const video = {
-  vanilla: (config) => new Vanilla(config),
+  // vanilla: (config) => new Vanilla(config),
   videojs: (config) => new VideoJS(config),
 };
 
@@ -21,7 +20,7 @@ class VideoBase {
 
   configure(config: any) {
     this._logger = new Logger('VideoClass');
-    this._analytics = video[config.video];
+    this._analytics = video.videojs(config);
     this._auth = new Auth(config);
     this._storage = new Storage(config);
     this._api = new Api(config);

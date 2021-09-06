@@ -31,12 +31,12 @@ class BaseStorage {
     this._config = { ...values, ...this._config };
   }
 
-  get extensions() {
-    return this._extensions;
-  }
-
   get config() {
     return this._config;
+  }
+
+  get extensions() {
+    return this._extensions;
   }
 
   get logger() {
