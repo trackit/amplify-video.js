@@ -10,7 +10,6 @@
   "parserOptions": {
     "project": "./tsconfig.json"
   },
-  
   "rules": {
     "no-param-reassign": "off",
     "no-return-await": "off",
