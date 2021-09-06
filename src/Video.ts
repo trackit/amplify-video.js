@@ -1,9 +1,5 @@
-import { v4 as uuidv4 } from 'uuid';
-import Amplify, { ConsoleLogger as Logger } from '@aws-amplify/core';
-import { StorageClass } from '@aws-amplify/storage';
-import { API, graphqlOperation } from '@aws-amplify/api';
-import { Auth } from '@aws-amplify/auth';
-import { Analytics, AWSKinesisProvider } from '@aws-amplify/analytics';
+import Amplify from '@aws-amplify/core';
+import VideoBase from './VideoBase';
 import {
   MetadataDict, Mutation, Query, PlayerbackConfig, StorageConfig,
 } from './Interfaces';
@@ -11,9 +7,7 @@ import { Mutations, Queries } from './graphql';
 import VideoAnalytics from './Analytics';
 import PlayTracking from './Tracking/Play';
 
-const logger = new Logger('VideoClass');
-
-export default class VideoClass {
+export default class VideoClass extends VideoBase {
   private _config: any;
   private _bucketConfig: {};
   private _auth: typeof Auth;
@@ -25,6 +19,7 @@ export default class VideoClass {
   private _queries: Query;
 
   constructor() {
+    super();
     this._config = {};
     this._storage = new StorageClass();
     this._auth = Auth;
@@ -37,15 +32,8 @@ export default class VideoClass {
   }
 
   public configure(config?: any) {
-    logger.debug('configure Video');
-    console.log('issou');
+    super.configure(config);
     this._config = config;
-    this._bucketConfig = {
-      region: this._config.aws_project_region,
-      customPrefix: {
-        public: '',
-      },
-    };
     Amplify.configure(config);
     this._analytics.configure({
       AWSKinesis: { region: this._config.aws_project_region },
@@ -74,10 +62,7 @@ export default class VideoClass {
   }
 
   public async upload(file, metadatadict: MetadataDict, config: StorageConfig) {
-    if (file.type.split('/')[0] !== 'video') {
-      return logger.error(`Format is not supported (supported formats:${this._extensions.map((extention) => ` .${extention}`)})`);
-    }
-    const uuid = uuidv4();
+    const { uuid } = this;
     const fileExtension = file.name.toLowerCase().split('.');
     const videoObject = {
       input: {
@@ -92,8 +77,6 @@ export default class VideoClass {
       },
     };
     config = {
-      contentType: 'video/*',
-      ...this._bucketConfig,
       ...config,
     };
 
@@ -107,13 +90,13 @@ export default class VideoClass {
       const storageResponse: any = await this._storage.put(`${uuid}.${fileExtension[fileExtension.length - 1]}`, file, config);
       return {
         data: {
-          createVideoObject: videoObjectResponse.data.createVideoObject,
-          createVodAsset: vodAssetResponse.data.createVodAsset,
-          key: storageResponse.key,
+          createVideoObject,
+          createVodAsset,
+          key,
         },
       };
     } catch (error) {
-      return logger.error(error);
+      return this.logger.error(error);
     }
   }
 
@@ -123,9 +106,7 @@ export default class VideoClass {
         id: vodAssetVideoId,
       },
     };
-
     config = {
-      ...this._bucketConfig,
       ...config,
     };
 
@@ -136,15 +117,16 @@ export default class VideoClass {
       const vodAssetResponse: any = await this._api.graphql(
         graphqlOperation(this._mutations.deleteVodAsset, input),
       );
-      await Promise.all(this._extensions.map((extension) => this._storage.remove(`${vodAssetVideoId}.${extension}`, config)));
+      const { deleteVideoObject } = responses[0].data;
+      const { deleteVodAsset } = responses[1].data;
       return {
         data: {
-          deleteVideoObject: videoObjectResponse.data.deleteVideoObject,
-          deleteVodAsset: vodAssetResponse.data.deleteVodAsset,
+          deleteVideoObject,
+          deleteVodAsset,
         },
       };
     } catch (error) {
-      return logger.error(error);
+      return this.logger.error(error);
     }
   }
 
@@ -165,7 +147,7 @@ export default class VideoClass {
       );
       return vodAssetResponse;
     } catch (error) {
-      return logger.error(error);
+      return this.logger.error(error);
     }
   }
 
@@ -181,49 +163,77 @@ export default class VideoClass {
       const { token } = vodAssetResponse.data.getVodAsset.video;
       return {
         data: {
-          playbackUrl: `https://${config.awsOutputVideo}/${id}/${id}.m3u8`,
-          token,
+          playbackUrl: `${config.awsOutputVideo}/${id}/${id}.m3u8`,
         },
       };
+    } catch (error) {
+      return this.logger.error(error);
     }
-    return {
-      data: {
-        playbackUrl: `${config.awsOutputVideo}/${id}/${id}.m3u8`,
-      },
-    };
   }
 
-  public async analytics(streamName: string, provider: string) {
-    const videoPlayers = window.document.getElementsByTagName('video');
-    /*
-    this.on('dispose', reset);
-    this.on('loadstart', reset);
-    this.on('ended', reset);
-    this.on('pause', onPause);
-    this.on('waiting', onPlayerWaiting);
-    this.on('timeupdate', onTimeupdate);
-  */
-    Array.from(videoPlayers).forEach((videoPlayer) => {
-      console.log(videoPlayer);
-      const videoPlayerAnalytics = new VideoAnalytics(videoPlayer, this._analytics);
-      const playingTracker = new PlayTracking();
-
-      videoPlayer.addEventListener('pause', () => videoPlayerAnalytics.onPause(streamName, provider));
-      // videoPlayer.addEventListener('waiting', () => videoPlayerAnalytics.onPlayerWaiting());
-      // videoPlayer.addEventListener('timeupdate', () => videoPlayerAnalytics.onTimeupdate());
-
-      // Playing events
-      videoPlayer.addEventListener('dispose', () => console.log('dispose'));
-      videoPlayer.addEventListener('loadstart', () => playingTracker.onLoadStart());
-      videoPlayer.addEventListener('loadeddata', () => playingTracker.onLoadedData());
-      videoPlayer.addEventListener('playing', () => playingTracker.onPlaying());
+  public async record(streamName: string, provider: string, instance: any) {
+    this.analytics.config = {
+      streamName,
+      provider,
+    };
+    this.analytics.videoPlayer = instance;
+    instance.player.on('play', () =>
+      this.analytics.play(this.analytics.getPlaylistType(instance.player)),
+    );
+    instance.player.on('loadstart', () => {
+      this.analytics.loadedStarted();
     });
-    // this._analytics.record(
-    //   {
-    //     data,
-    //     streamName,
-    //   },
-    //   'AWSKinesisFirehose',
-    // );
+    instance.player.on('loadeddata', () => {
+      this.analytics.loadedData({
+        duration: instance.player.duration(),
+        packageType: this.analytics.getPackageType(instance.player),
+        playbackAttr: instance.player.tech().vhs.playlists.media_.attributes,
+      });
+      console.log('currentVideo', this.analytics.currentVideo);
+    });
+    instance.player.on('waiting', () => {
+      this.analytics.buffering(instance.player.currentTime());
+    });
+    instance.player.on('canplaythrough', () => {
+      this.analytics.bufferCompleted();
+    });
+    instance.player.on('timeupdate', () => {
+      const intPlayedTime = parseInt(instance.player.currentTime(), 10);
+      const everyFiveSec = intPlayedTime % 5 === 0 && intPlayedTime !== 0;
+      // process it only every 5 seconds.
+      if (everyFiveSec) {
+        this.analytics.timeUpdate({
+          duration: instance.player.duration(),
+          time: instance.player.currentTime(),
+        });
+      }
+    });
+    instance.player.on('seeking', () => this.analytics.seeking());
+    instance.player.on('seeked', () => {
+      this.analytics.seeked({
+        currentTime: instance.player.currentTime(),
+      });
+    });
+    instance.player.on('mediachange', () => {
+      this.analytics.step({
+        playbackAttr:
+          instance.player.tech(true).vhs.playlists.media_.attributes,
+        packageType: this.analytics.getPackageType(instance.player),
+        time: instance.player.currentTime(),
+      });
+    });
+    instance.player.on('error', (err) => {
+      this.analytics.errorOccured({
+        time: instance.player.currentTime(),
+        error: err,
+      });
+    });
+    instance.player.on('pause', () => this.analytics.pause());
+    instance.player.on('ended', () => {
+      this.analytics.ended({
+        currentTime: instance.player.currentTime(),
+        duration: instance.player.duration(),
+      });
+    });
   }
 }
