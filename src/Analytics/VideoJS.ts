@@ -235,23 +235,14 @@ class VideoJS extends BaseAnalytics {
     this.record(metricValue);
   }
 
-  private updateBufferStatus(
-    bufferType,
-    timeTakenToBuffer,
-    time,
-    // cdn_request_id,
-    // rtt,
-  ) {
+  private updateBufferStatus(bufferType, timeTakenToBuffer, time) {
     this.connectionType = this.getConnectionType();
     const metricValue = this.buildMetric(this.MetricType.BUFFER, [
       bufferType,
       time,
-      // rtt,
       this.connectionType.type,
       timeTakenToBuffer,
-      // cdn_request_id,
     ]);
-    // displayMetrics("Completed " + bufferType + " at :", new Date().toLocaleTimeString());
     this.log(`${bufferType} ready in ${timeTakenToBuffer} ms`);
     this.record(metricValue);
   }
@@ -262,8 +253,6 @@ class VideoJS extends BaseAnalytics {
       'FirstBuffer',
       timeTakenToBuffer,
       this.currentVideo.currentTime,
-      // cdn_request_id,
-      // rtt,
     );
   }
 }

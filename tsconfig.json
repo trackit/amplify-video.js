@@ -1,14 +1,14 @@
 {
-    "compilerOptions": {
-      "module": "commonjs",
-      "esModuleInterop": true,
-      "target": "es5",
-      "moduleResolution": "node",
-      "sourceMap": true,
-      "outDir": "dist",
-      "declaration": true
-    },
-    "lib": ["es2015"],
-    "include": ["src/**/*", "scripts", "index.ts", "__tests__"],
-    "exclude": ["node_modules"]
-  }
+  "compilerOptions": {
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "target": "es5",
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "outDir": "dist",
+    "declaration": true
+  },
+  "lib": ["es2015"],
+  "include": ["src/**/*", "scripts/**/*", "index.ts", "__mocks__"],
+  "exclude": ["node_modules"]
+}

@@ -1,11 +1,11 @@
 export default {
   PLAY: {
-    at: '', //playback position
+    at: '', // playback position
     duration: '',
   },
   FIRSTFRAME: {
-    connection_type: '', //3g or 4g
-    package: '', //HLS or DASH
+    connection_type: '', // 3g or 4g
+    package: '', // HLS or DASH
     resolution: '',
     fps: '',
     avg_bitrate: '',
@@ -19,7 +19,7 @@ export default {
   },
   BUFFER: {
     buffer_type: '',
-    at: '', //playback position
+    at: '', // playback position
     connection_type: '',
     time_millisecond: '',
   },
@@ -33,10 +33,10 @@ export default {
     duration: '',
   },
   STEP: {
-    at: '', //playback position
+    at: '', // playback position
     bitrate_from: '',
     bitrate_to: '',
-    direction: '', //quality UP or DOWN
+    direction: '', // quality UP or DOWN
     package: '',
     resolution: '',
     fps: '',

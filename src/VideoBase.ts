@@ -28,8 +28,8 @@ class VideoBase {
     this._auth = new Auth(config);
     this._storage = new Storage(config);
     this._api = new Api(config);
-    this._mutations = this.reduce(Queries, config);
-    this._queries = this.reduce(Mutations, config);
+    this._mutations = this.reduce(Mutations, config);
+    this._queries = this.reduce(Queries, config);
   }
 
   get analytics() {

@@ -1,8 +1,6 @@
 import Amplify from '@aws-amplify/core';
 import VideoBase from './VideoBase';
-import {
-  MetadataDict, PlayerbackConfig, StorageConfig,
-} from './Interfaces';
+import { MetadataDict, PlayerbackConfig, StorageConfig } from './Interfaces';
 
 export default class VideoClass extends VideoBase {
   private _config: any;
@@ -49,7 +47,6 @@ export default class VideoClass extends VideoBase {
         config,
       };
       const responses: any = await Promise.all([
-        await this.storage.put(params),
         await this.api.graphQlOperation({
           input: videoObject,
           mutation: this.mutations.createVideoObject,
@@ -58,10 +55,12 @@ export default class VideoClass extends VideoBase {
           input: videoAsset,
           mutation: this.mutations.createVodAsset,
         }),
+        await this.storage.put(params),
       ]);
-      const { key } = responses[0];
-      const { createVideoObject } = responses[1].data;
-      const { createVodAsset } = responses[2].data;
+      console.log('responses', responses);
+      const { createVideoObject } = responses[0].data;
+      const { createVodAsset } = responses[1].data;
+      const { key } = responses[2];
       return {
         data: {
           createVideoObject,
@@ -173,63 +172,62 @@ export default class VideoClass extends VideoBase {
       streamName,
       provider,
     };
-    this.analytics.videoPlayer = instance;
-    instance.player.on('play', () =>
-      this.analytics.play(this.analytics.getPlaylistType(instance.player)),
+    const { player } = instance;
+    player.on('play', () =>
+      this.analytics.play(this.analytics.getPlaylistType(player)),
     );
-    instance.player.on('loadstart', () => {
+    player.on('loadstart', () => {
       this.analytics.loadedStarted();
     });
-    instance.player.on('loadeddata', () => {
+    player.on('loadeddata', () => {
       this.analytics.loadedData({
-        duration: instance.player.duration(),
-        packageType: this.analytics.getPackageType(instance.player),
-        playbackAttr: instance.player.tech().vhs.playlists.media_.attributes,
+        duration: player.duration(),
+        packageType: this.analytics.getPackageType(player),
+        playbackAttr: player.tech().vhs.playlists.media_.attributes,
       });
       console.log('currentVideo', this.analytics.currentVideo);
     });
-    instance.player.on('waiting', () => {
-      this.analytics.buffering(instance.player.currentTime());
+    player.on('waiting', () => {
+      this.analytics.buffering(player.currentTime());
     });
-    instance.player.on('canplaythrough', () => {
+    player.on('canplaythrough', () => {
       this.analytics.bufferCompleted();
     });
-    instance.player.on('timeupdate', () => {
-      const intPlayedTime = parseInt(instance.player.currentTime(), 10);
+    player.on('timeupdate', () => {
+      const intPlayedTime = parseInt(player.currentTime(), 10);
       const everyFiveSec = intPlayedTime % 5 === 0 && intPlayedTime !== 0;
       // process it only every 5 seconds.
       if (everyFiveSec) {
         this.analytics.timeUpdate({
-          duration: instance.player.duration(),
-          time: instance.player.currentTime(),
+          duration: player.duration(),
+          time: player.currentTime(),
         });
       }
     });
-    instance.player.on('seeking', () => this.analytics.seeking());
-    instance.player.on('seeked', () => {
+    player.on('seeking', () => this.analytics.seeking());
+    player.on('seeked', () => {
       this.analytics.seeked({
-        currentTime: instance.player.currentTime(),
+        currentTime: player.currentTime(),
       });
     });
-    instance.player.on('mediachange', () => {
+    player.on('mediachange', () => {
       this.analytics.step({
-        playbackAttr:
-          instance.player.tech(true).vhs.playlists.media_.attributes,
-        packageType: this.analytics.getPackageType(instance.player),
-        time: instance.player.currentTime(),
+        playbackAttr: player.tech(true).vhs.playlists.media_.attributes,
+        packageType: this.analytics.getPackageType(player),
+        time: player.currentTime(),
       });
     });
-    instance.player.on('error', (err) => {
+    player.on('error', (err) => {
       this.analytics.errorOccured({
-        time: instance.player.currentTime(),
+        time: player.currentTime(),
         error: err,
       });
     });
-    instance.player.on('pause', () => this.analytics.pause());
-    instance.player.on('ended', () => {
+    player.on('pause', () => this.analytics.pause());
+    player.on('ended', () => {
       this.analytics.ended({
-        currentTime: instance.player.currentTime(),
-        duration: instance.player.duration(),
+        currentTime: player.currentTime(),
+        duration: player.duration(),
       });
     });
   }
