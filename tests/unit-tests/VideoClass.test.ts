@@ -34,7 +34,7 @@ describe('VideoBase members', () => {
     expect(videoBaseConsumer.auth).toBeUndefined();
   });
 
-/*   it('API members should be undefined before configure() call', () => {
+  /*   it('API members should be undefined before configure() call', () => {
     const videoBaseConsumer = new VideoClass();
     videoBaseConsumer.configure("config");
     const mockVideoClassInstance = VideoBase.mock.instances[0];
