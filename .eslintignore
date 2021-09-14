@@ -2,3 +2,4 @@ node_modules
 dist
 tsconfig.json
 jest.config.js
+e2e/

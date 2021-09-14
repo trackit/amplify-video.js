@@ -2,7 +2,7 @@ import BaseStorage from './BaseStorage';
 
 class Storage extends BaseStorage {
   public async put({ filename, file, config }) {
-    this.checkFileFormat(file);
+    // this.checkFileFormat(file);
     this.config = {
       ...config,
     };
@@ -23,7 +23,7 @@ class Storage extends BaseStorage {
           (extention) => ` .${extention}`,
         )})`,
       );
-      process.exit(1);
+      throw new Error('Unsupported file format');
     }
   }
 }

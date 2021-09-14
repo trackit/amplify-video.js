@@ -4,5 +4,5 @@ module.exports = {
   testEnvironment: 'node',
   globalSetup: './scripts/setup.ts',
   globalTeardown: './scripts/teardown.ts',
-  modulePathIgnorePatterns: ["<rootDir>/dist/"]
+  modulePathIgnorePatterns: ['<rootDir>/dist/']
 };
