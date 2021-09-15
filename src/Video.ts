@@ -13,7 +13,7 @@ export default class VideoClass extends VideoBase {
   public configure(config?: any) {
     super.configure(config);
     this._config = config;
-    Amplify.configure(config);
+    Amplify.configure(config); // Be carefull here, it can create circular deps
     return this._config;
   }
 

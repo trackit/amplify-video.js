@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@aws-amplify/ui-react": "^1.2.15",
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
     "@testing-library/user-event": "^12.1.10",
@@ -10,6 +11,9 @@
     "@types/node": "^12.0.0",
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
+    "amplify-video.js": "file:..",
+    "classnames": "^2.3.1",
+    "node-sass": "^6.0.1",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-scripts": "4.0.3",
@@ -17,10 +21,11 @@
     "web-vitals": "^1.0.1"
   },
   "scripts": {
-    "start": "SKIP_PREFLIGHT_CHECK=true react-scripts start",
-    "build": "react-scripts build",
+    "start": "PORT=3000 SKIP_PREFLIGHT_CHECK=true react-scripts start",
+    "postinstall": "node post-install.js",
+    "build": "SKIP_PREFLIGHT_CHECK=true react-scripts build",
     "test": "start-server-and-test start http://localhost:3000 cy:run",
-    "eject": "react-scripts eject",
+    "eject": "SKIP_PREFLIGHT_CHECK=true react-scripts eject",
     "cy:run": "cypress run"
   },
   "eslintConfig": {
@@ -42,7 +47,11 @@
     ]
   },
   "devDependencies": {
+    "aws-amplify": "^4.2.9",
     "cypress": "^8.4.0",
+    "cypress-file-upload": "^5.0.8",
+    "cypress-localstorage-commands": "^1.5.0",
+    "ejs": "^2.7.4",
     "start-server-and-test": "^1.14.0"
   }
 }

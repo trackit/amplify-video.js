@@ -4,9 +4,9 @@
   "description": "amplify-video javascript client library",
   "main": "./dist/src/index.js",
   "scripts": {
-    "postinstall": "tsc && node dist/scripts/post-install.js",
     "build": "rm -rf dist/ && tsc",
     "dev": "tsc -watch",
+    "tsc": "tsc",
     "test": "npm run unit:test && npm run cypress",
     "cypress": "npm --prefix ./e2e test",
     "unit:test": "jest -unit --testPathPattern=tests/unit-tests",

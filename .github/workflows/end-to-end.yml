@@ -1,0 +1,51 @@
+name: Cypress Tests
+
+on: 
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  cypress-run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      # Install NPM dependencies, cache them correctly
+      # and run all Cypress tests
+      - name: Install dependencies
+        run : npm install && npm run build
+      - name: Cypress run
+        uses: cypress-io/github-action@v2
+        with:
+          start: npx serve -s -l 3000 build
+          build: yarn build
+          wait-on: 'http://localhost:3000'
+          wait-on-timeout: 120
+          working-directory: e2e
+        env:
+          CYPRESS_username: ${{ secrets.USERNAME }}
+          CYPRESS_password: ${{ secrets.PASSWORD }}
+          CYPRESS_aws_project_region: ${{ secrets.AWS_PROJECT_REGION }}
+          CYPRESS_aws_cognito_identity_pool_id: ${{ secrets.AWS_COGNITO_IDENTITY_POOL_ID }}
+          CYPRESS_aws_cognito_region: ${{ secrets.AWS_PROJECT_REGION }}
+          CYPRESS_aws_user_pools_id: ${{ secrets.AWS_USER_POOLS_ID }}
+          CYPRESS_aws_user_pools_web_client_id: ${{ secrets.AWS_USER_POOLS_WEB_CLIENT_ID }}
+          CYPRESS_aws_appsync_graphqlEndpoint: ${{ secrets.AWS_APPSYNC_GRAPHQLENDPOINT }}
+          CYPRESS_aws_appsync_region: ${{ secrets.AWS_PROJECT_REGION }}
+          CYPRESS_aws_appsync_authenticationType: "AMAZON_COGNITO_USER_POOLS"
+          CYPRESS_awsInputVideo: ${{ secrets.AWSINPUTVIDEO }}
+          CYPRESS_awsOutputVideo: ${{ secrets.AWSOUTPUTVIDEO }}
+      - uses: actions/upload-artifact@v1
+        if: failure()
+        with:
+          name: cypress-screenshots
+          path: e2e/cypress/screenshots
+      # Test run video was always captured, so this action uses "always()" condition
+      - uses: actions/upload-artifact@v1
+        if: always() 
+        with:
+          name: cypress-videos
+          path: e2e/cypress/videos
+        

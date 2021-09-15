@@ -2,7 +2,7 @@ import BaseStorage from './BaseStorage';
 
 class Storage extends BaseStorage {
   public async put({ filename, file, config }) {
-    // this.checkFileFormat(file);
+    this.checkFileFormat(file);
     this.config = {
       ...config,
     };

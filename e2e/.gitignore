@@ -23,3 +23,8 @@ yarn-debug.log*
 yarn-error.log*
 
 .DS_Store
+
+# Cypress
+cypress.env.json
+
+cypress/videos/**/*.mp4

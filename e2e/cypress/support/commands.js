@@ -1,25 +1,44 @@
-// ***********************************************
-// This example commands.js shows you how to
-// create various custom commands and overwrite
-// existing commands.
-//
-// For more comprehensive examples of custom
-// commands please read more here:
-// https://on.cypress.io/custom-commands
-// ***********************************************
-//
-//
-// -- This is a parent command --
-// Cypress.Commands.add('login', (email, password) => { ... })
-//
-//
-// -- This is a child command --
-// Cypress.Commands.add('drag', { prevSubject: 'element'}, (subject, options) => { ... })
-//
-//
-// -- This is a dual command --
-// Cypress.Commands.add('dismiss', { prevSubject: 'optional'}, (subject, options) => { ... })
-//
-//
-// -- This will overwrite an existing command --
-// Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
+import 'cypress-localstorage-commands';
+import 'cypress-file-upload';
+const Auth = require('aws-amplify').Auth;
+const username = Cypress.env('username');
+const password = Cypress.env('password');
+let awsconfig = {
+  aws_project_region: null,
+  aws_cognito_identity_pool_id: null,
+  aws_cognito_region: null,
+  aws_user_pools_id: null,
+  aws_user_pools_web_client_id: null,
+  aws_appsync_graphqlEndpoint: null,
+  aws_appsync_region: null,
+  aws_appsync_authenticationType: null,
+};
+
+const reduce = (obj) => {
+  return Object.keys(obj).reduce((acc, arr) => {
+    acc[arr] = Cypress.env(arr);
+    return acc;
+  }, {});
+};
+
+awsconfig = reduce(awsconfig);
+console.log(awsconfig);
+Auth.configure(awsconfig);
+
+Cypress.Commands.add('signIn', () => {
+  cy.then(() => Auth.signIn(username, password)).then((cognitoUser) => {
+    const idToken = cognitoUser.signInUserSession.idToken.jwtToken;
+    const accessToken = cognitoUser.signInUserSession.accessToken.jwtToken;
+
+    const makeKey = (name) =>
+      `CognitoIdentityServiceProvider.${cognitoUser.pool.clientId}.${cognitoUser.username}.${name}`;
+
+    cy.setLocalStorage(makeKey('accessToken'), accessToken);
+    cy.setLocalStorage(makeKey('idToken'), idToken);
+    cy.setLocalStorage(
+      `CognitoIdentityServiceProvider.${cognitoUser.pool.clientId}.LastAuthUser`,
+      cognitoUser.username,
+    );
+  });
+  cy.saveLocalStorage();
+});
