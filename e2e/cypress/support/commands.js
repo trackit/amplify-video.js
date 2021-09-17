@@ -26,19 +26,21 @@ console.log(awsconfig);
 Auth.configure(awsconfig);
 
 Cypress.Commands.add('signIn', () => {
-  cy.then(() => Auth.signIn(username, password)).then((cognitoUser) => {
-    const idToken = cognitoUser.signInUserSession.idToken.jwtToken;
-    const accessToken = cognitoUser.signInUserSession.accessToken.jwtToken;
+  cy.then({ timeout: 6000 }, () => Auth.signIn(username, password)).then(
+    (cognitoUser) => {
+      const idToken = cognitoUser.signInUserSession.idToken.jwtToken;
+      const accessToken = cognitoUser.signInUserSession.accessToken.jwtToken;
 
-    const makeKey = (name) =>
-      `CognitoIdentityServiceProvider.${cognitoUser.pool.clientId}.${cognitoUser.username}.${name}`;
+      const makeKey = (name) =>
+        `CognitoIdentityServiceProvider.${cognitoUser.pool.clientId}.${cognitoUser.username}.${name}`;
 
-    cy.setLocalStorage(makeKey('accessToken'), accessToken);
-    cy.setLocalStorage(makeKey('idToken'), idToken);
-    cy.setLocalStorage(
-      `CognitoIdentityServiceProvider.${cognitoUser.pool.clientId}.LastAuthUser`,
-      cognitoUser.username,
-    );
-  });
+      cy.setLocalStorage(makeKey('accessToken'), accessToken);
+      cy.setLocalStorage(makeKey('idToken'), idToken);
+      cy.setLocalStorage(
+        `CognitoIdentityServiceProvider.${cognitoUser.pool.clientId}.LastAuthUser`,
+        cognitoUser.username,
+      );
+    },
+  );
   cy.saveLocalStorage();
 });

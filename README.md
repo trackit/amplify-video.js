@@ -2,21 +2,57 @@
 
 amplify-video client library that is purpose built for Amplify Video managed resources. It's a superset of the existing amplify.js libraries for video asset.
 
-### Local development setup
-
-Inside `amplify-video.js` directory run `npm link` then in your project directory execute in turn the command `npm link amplify-video.js`
-
-For more information about `npm link` command, click on the [link](https://docs.npmjs.com/cli/v7/commands/npm-link).
-
-You can now import you module inside your project like below:
-
+## Installation
+TODO: Remove when first release
+```sh
+$ npm install --save amplify-video.js
+```
 ```ts
 import Video from 'amplify-video.js';
 ```
+## Local development setup
 
-To unlink module run the following in your project directory `npm unlink --no-save amplify-video.js`.
+```sh
+$ npm install -g
+$ npm run dev
+```
+and then
+```ts
+import Video from 'amplify-video.js/dist';
+```
 
-### How to use
+*`npm run dev` will watch for changes in your file compile your project based on `tsconfig.json` file
+
+## Tests
+Unit-tests are located in `unit-tests/` directory, all unit-tests must go here.
+
+End-to-end tests are located in `e2e/` directory, it contains a React Application and Cypress allowing us to test real use cases with the library simulating user interaction in a browser.
+
+You can run unit-tests and end-to-end tests independently
+
+### Unit-tests only
+```sh
+$ npm run unit-test
+```
+If you want to watch changes in your files you can pass --watch to previous command.
+
+```sh
+$ npm run unit-test -- --watch
+```
+
+### End-to-end tests only (no GUI)
+```sh
+$ npm run cypress
+```
+
+### Both (unit & end-to-end tests)
+```sh
+$ npm test
+```
+
+For more information about end-to-end testing check [README.md](./e2e/README.md "e2e's README.md") in `e2e` directory.
+
+## How to use
 
 #### Configuration and registration
 

@@ -7,13 +7,14 @@
     "build": "rm -rf dist/ && tsc",
     "dev": "tsc -watch",
     "tsc": "tsc",
+    "prepare": "husky install",
+    "pretest": "npm run build",
     "test": "npm run unit:test && npm run cypress",
-    "cypress": "npm --prefix ./e2e test",
+    "cypress": "npm run build && npm --prefix ./e2e test",
     "unit:test": "jest -unit --testPathPattern=tests/unit-tests",
     "lint": "eslint .",
     "lint:report": "eslint --output-file eslint_report.json --format json src",
-    "lint:fix": "eslint . --fix",
-    "prepare": "husky install"
+    "lint:fix": "eslint . --fix"
   },
   "repository": {
     "type": "git",
