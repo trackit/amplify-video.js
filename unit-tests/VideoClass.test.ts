@@ -1,6 +1,6 @@
-import VideoBase from '../../src/VideoBase';
-import VideoClass from '../../src/Video';
-jest.mock('../../src/VideoBase');
+import VideoBase from '../src/VideoBase';
+import VideoClass from '../src/Video';
+jest.mock('../src/VideoBase');
 
 beforeEach(() => {
   (VideoBase as jest.Mock<VideoBase>).mockClear();

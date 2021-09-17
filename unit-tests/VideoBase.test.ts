@@ -1,15 +1,15 @@
-import VideoBase from '../../src/VideoBase';
-import Auth from '../../src/Auth/Auth';
-import Api from '../../src/Api/Api';
-import Storage from '../../src/Storage/Storage';
-import VideoJS from '../../src/Analytics/VideoJS';
-import mutations from '../../src/graphql/mutations';
-import queries from '../../src/graphql/queries';
+import VideoBase from '../src/VideoBase';
+import Auth from '../src/Auth/Auth';
+import Api from '../src/Api/Api';
+import Storage from '../src/Storage/Storage';
+import VideoJS from '../src/Analytics/VideoJS';
+import mutations from '../src/graphql/mutations';
+import queries from '../src/graphql/queries';
 
-jest.mock('../../src/Auth/Auth');
-jest.mock('../../src/Storage/Storage');
-jest.mock('../../src/Api/Api');
-jest.mock('../../src/Analytics/VideoJS');
+jest.mock('../src/Auth/Auth');
+jest.mock('../src/Storage/Storage');
+jest.mock('../src/Api/Api');
+jest.mock('../src/Analytics/VideoJS');
 
 beforeEach(() => {
   (Auth as jest.Mock<Auth>).mockClear();
