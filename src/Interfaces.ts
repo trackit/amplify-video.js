@@ -9,6 +9,7 @@ export interface StorageConfig {
   };
   level?: 'public' | 'private' | 'protected';
   bucket: string;
+  progressCallback?: any;
   contentType: string;
 }
 

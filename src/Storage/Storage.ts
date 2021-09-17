@@ -23,7 +23,7 @@ class Storage extends BaseStorage {
           (extention) => ` .${extention}`,
         )})`,
       );
-      process.exit(1);
+      throw new Error('Unsupported file format');
     }
   }
 }
