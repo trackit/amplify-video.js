@@ -48,6 +48,7 @@ const Upload = (props: Props) => {
 
   return (
     <Block
+      dataCy={"submit"}
       className={props.className}
       title="Upload"
       button="Upload file"

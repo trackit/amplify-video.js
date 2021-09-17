@@ -33,6 +33,7 @@ const Metadata = (props: Props) => {
 
   return (
     <Block
+      dataCy={'fetch'}
       className={props.className}
       title="Metadata"
       button="Fetch"
