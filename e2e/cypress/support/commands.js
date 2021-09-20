@@ -26,7 +26,7 @@ console.log(awsconfig);
 Auth.configure(awsconfig);
 
 Cypress.Commands.add('signIn', () => {
-  cy.then({ timeout: 6000 }, () => Auth.signIn(username, password)).then(
+  cy.then({ timeout: 60000 }, () => Auth.signIn(username, password)).then(
     (cognitoUser) => {
       const idToken = cognitoUser.signInUserSession.idToken.jwtToken;
       const accessToken = cognitoUser.signInUserSession.accessToken.jwtToken;
