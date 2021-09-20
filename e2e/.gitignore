@@ -28,3 +28,5 @@ yarn-error.log*
 cypress.env.json
 
 cypress/videos/**/*.mp4
+
+cypress/fixtures/upload-response.json

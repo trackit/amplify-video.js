@@ -21,7 +21,7 @@ const Grid = () => {
           <br />
           <code>Video.upload();</code>
         </p>
-        <pre>
+        <pre data-cy="pre-upload">
           {result && result.upload ? JSON.stringify(result.upload, null, 2) : null}
         </pre>
       </Upload>
@@ -35,7 +35,7 @@ const Grid = () => {
           <br />
           <code>Video.metadata();</code>
         </p>
-        <pre>
+        <pre data-cy="pre-metadata">
           {result && result.metadata ? JSON.stringify(result.metadata, null, 2) : null}
         </pre>
       </Metadata>
