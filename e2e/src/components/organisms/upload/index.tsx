@@ -48,6 +48,7 @@ const Upload = (props: Props) => {
 
   return (
     <Block
+      dataCy={"submit"}
       className={props.className}
       title="Upload"
       button="Upload file"
@@ -55,7 +56,7 @@ const Upload = (props: Props) => {
       onClick={async () => await handleSubmit()}
     >
       {props.children}
-      <Input type="file" disabled={loading} forwardRef={inputRef} />
+      <Input type="file" disabled={loading} forwardref={inputRef} />
     </Block>
   );
 };

@@ -28,10 +28,12 @@ type Props = {
   children: ReactNode;
   className: string;
   disabled: boolean;
+  dataCy: string;
 };
 
 const Button = (props: Props) => {
-  const { type, onClick, children, theme, size, className, disabled } = props;
+  const { type, dataCy, onClick, children, theme, size, className, disabled } =
+    props;
   const classProps: string = classnames(
     'button',
     theme,
@@ -42,7 +44,7 @@ const Button = (props: Props) => {
 
   return (
     <button
-      data-cy="submit"
+      data-cy={dataCy}
       type={type}
       onClick={onClick}
       disabled={disabled}

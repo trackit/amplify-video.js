@@ -12,6 +12,7 @@ interface Props {
   title: string;
   button?: string;
   onClick?: MouseEventHandler<HTMLElement>;
+  dataCy: string;
   disabled?: boolean;
 }
 
@@ -20,7 +21,7 @@ const Block = (props: Props) => (
     <Title>{props.title}</Title>
     {props.children}
     {props.button !== '' && (
-      <Button disabled={props.disabled} onClick={props.onClick}>
+      <Button dataCy={props.dataCy} disabled={props.disabled} onClick={props.onClick}>
         {props.button}
       </Button>
     )}

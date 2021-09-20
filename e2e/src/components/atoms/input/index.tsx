@@ -3,11 +3,11 @@ interface Props
     React.InputHTMLAttributes<HTMLInputElement>,
     HTMLInputElement
   > {
-  forwardRef: React.LegacyRef<HTMLInputElement>;
+  forwardref: React.LegacyRef<HTMLInputElement>;
 }
 
 const Input = (props: Props) => (
-  <input ref={props.forwardRef} {...props}></input>
+  <input ref={props.forwardref} {...props}></input>
 );
 
 export default Input;
