@@ -1,5 +1,5 @@
-import { RESPONSE_FILE_PATH } from '../../utils/constant';
-import { aliasMutation } from '../../utils/graphql-test-utils';
+import { RESPONSE_FILE_PATH } from '../utils/constant';
+import { aliasMutation } from '../utils/graphql-test-utils';
 
 describe('Fetching metadata', () => {
   beforeEach(() => {
