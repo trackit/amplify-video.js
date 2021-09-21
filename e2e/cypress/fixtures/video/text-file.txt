@@ -1,0 +1,1 @@
+Used to test upload method with other file formats

@@ -1,8 +1,8 @@
+import FileExtensionError from '../Exception/FileExtensionError';
 import BaseStorage from './BaseStorage';
 
 class Storage extends BaseStorage {
   public async put({ filename, file, config }) {
-    this.checkFileFormat(file);
     this.config = {
       ...config,
     };
@@ -18,12 +18,11 @@ class Storage extends BaseStorage {
 
   checkFileFormat(file) {
     if (file.type.split('/')[0] !== 'video') {
-      this.logger.error(
+      throw new FileExtensionError(
         `Format is not supported (supported formats:${this.extensions.map(
           (extention) => ` .${extention}`,
         )})`,
       );
-      throw new Error('Unsupported file format');
     }
   }
 }

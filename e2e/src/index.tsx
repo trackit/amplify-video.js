@@ -10,7 +10,7 @@ import Video from 'amplify-video.js/dist';
 import { AmplifyAuthenticator } from '@aws-amplify/ui-react';
 import awsconfig from './aws-exports';
 
-Amplify.configure(awsconfig);
+Amplify.configure({ ...awsconfig, signedUrl: true });
 Amplify.register(Video);
 
 ReactDOM.render(

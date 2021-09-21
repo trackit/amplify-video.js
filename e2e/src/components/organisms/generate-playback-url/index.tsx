@@ -8,6 +8,7 @@ import {
 import Block from 'components/molecules/block';
 import Input from 'components/atoms/input';
 import Video from 'amplify-video.js/dist';
+import awsvideoconfig from 'aws-video-exports';
 
 interface Props {
   children?: ReactNode;
@@ -18,7 +19,7 @@ interface Props {
   callback?: any;
 }
 
-const Metadata = (props: Props) => {
+const PlaybackUrl = (props: Props) => {
   const inputRef = useRef() as MutableRefObject<HTMLInputElement>;
   const [loading, setLoading] = useState(false);
 
@@ -26,24 +27,31 @@ const Metadata = (props: Props) => {
     if (!inputRef.current.value) return;
     setLoading(true);
     const vodAssetVideoId = inputRef.current.value;
-    const { data } = await Video.metadata(vodAssetVideoId);
+    const data = await Video.playback(vodAssetVideoId, {
+      awsOutputVideo: awsvideoconfig.awsOutputVideo,
+    });
     props.callback(data);
     setLoading(false);
   };
 
   return (
     <Block
-      dataCy={'fetch'}
+      dataCy={'playback'}
       className={props.className}
-      title="Metadata"
-      button="Fetch"
+      title={props.title}
+      button={props.button}
       disabled={loading}
       onClick={async () => await handleSubmit()}
     >
       {props.children}
-      <Input type="text" disabled={loading} forwardref={inputRef} />
+      <Input
+        type="text"
+        data-cy="playback-input"
+        disabled={loading}
+        forwardref={inputRef}
+      />
     </Block>
   );
 };
 
-export default Metadata;
+export default PlaybackUrl;
