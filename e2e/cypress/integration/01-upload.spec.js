@@ -5,7 +5,10 @@ describe('File upload', () => {
   it('Video.upload method', () => {
     cy.visit('/');
     const filepath = 'video/video-sample.mp4';
-    cy.get('input[type="file"]').attachFile(filepath);
+    cy.get('input[type="file"]').attachFile({
+      filePath: filepath,
+      encoding: 'binary',
+    });
     cy.get('[data-cy=submit]').click();
 
     cy.intercept('/graphql', (req) => {
@@ -28,7 +31,7 @@ describe('File upload', () => {
       expect(s3Put.response.statusCode).to.equal(200);
       cy.wait(1000);
       cy.get('[data-cy=pre-upload]')
-        .invoke('html')
+        .invoke('text')
         .then((response) => {
           cy.wrap(response).as('response');
         });
@@ -46,7 +49,7 @@ describe('File upload', () => {
 
     cy.wait(1000);
     cy.get('[data-cy=pre-upload]')
-      .invoke('html')
+      .invoke('text')
       .then((content) => {
         const { data } = JSON.parse(content);
         expect(data).to.have.ownProperty('createVideoObject');
