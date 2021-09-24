@@ -7,6 +7,7 @@ import UpdateMetadata from 'components/organisms/update-metadata';
 import PlaybackUrl from 'components/organisms/generate-playback-url';
 
 import './style.scss';
+import VideoPlayer from 'components/organisms/video-player';
 
 const Grid = () => {
   const [result, setResult] = useState<any>(null);
@@ -79,6 +80,7 @@ const Grid = () => {
             : null}
         </pre>
       </PlaybackUrl>
+      <VideoPlayer title="Video Player" button="Configure"></VideoPlayer>
     </div>
   );
 };

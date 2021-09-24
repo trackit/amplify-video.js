@@ -59,7 +59,6 @@ export default class VideoClass extends VideoBase {
         }),
         await this.storage.put(params),
       ]);
-      console.log('responses', responses);
       const { createVideoObject } = responses[0].data;
       const { createVodAsset } = responses[1].data;
       const { key } = responses[2];
@@ -131,7 +130,7 @@ export default class VideoClass extends VideoBase {
           mutation: this.queries.getVodAsset,
           input: { id: vodAssetVideoId },
         });
-        if (!vodAssetResponse.getVodAsset)
+        if (!vodAssetResponse.data.getVodAsset)
           throw new NotFoundException('Vod asset video ID not found');
         return vodAssetResponse;
       }

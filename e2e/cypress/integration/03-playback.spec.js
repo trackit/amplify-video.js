@@ -1,4 +1,4 @@
-import { RESPONSE_FILE_PATH } from '../utils/constant';
+import { RESPONSE_FILE_PATH, PLAYBACK_URL_FILE_PATH } from '../utils/constant';
 import { aliasMutation } from '../utils/graphql-test-utils';
 
 describe('Generate playback url', () => {
@@ -19,13 +19,13 @@ describe('Generate playback url', () => {
     cy.wait('@getVodAsset').then(() => {
       cy.wait(1000);
       cy.get('[data-cy=pre-playback]')
-        .invoke('html')
+        .invoke('text')
         .then((content) => {
           const { data } = JSON.parse(content);
           expect(data).to.not.equal(null);
-          expect(data).to.have.ownProperty('playbackUrl')
-          if (data.token)
-            expect(data.token).to.include("?Policy=ey")
+          expect(data).to.have.ownProperty('playbackUrl');
+          if (data.token) expect(data.token).to.include('?Policy=ey');
+          cy.writeFile(PLAYBACK_URL_FILE_PATH, JSON.parse(content));
         });
     });
   });
@@ -37,14 +37,14 @@ describe('Generate playback url', () => {
     cy.wait('@getVodAsset').then(() => {
       cy.wait(1000);
       cy.get('[data-cy=pre-playback]')
-        .invoke('html')
+        .invoke('text')
         .then((content) => {
           const { data } = JSON.parse(content);
           expect(data).to.not.equal(null);
           expect(data).to.have.ownProperty('playbackUrl');
           expect(data).to.have.ownProperty('error');
           expect(data.playbackUrl).to.equal(null);
-          expect(data.error).to.equal("Vod asset video ID not found");
+          expect(data.error).to.equal('Vod asset video ID not found');
         });
     });
   });

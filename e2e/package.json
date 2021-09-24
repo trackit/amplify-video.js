@@ -18,6 +18,7 @@
     "react-dom": "^17.0.2",
     "react-scripts": "4.0.3",
     "typescript": "^4.1.2",
+    "video.js": "^7.15.4",
     "web-vitals": "^1.0.1"
   },
   "scripts": {
@@ -28,7 +29,7 @@
     "build": "SKIP_PREFLIGHT_CHECK=true react-scripts build",
     "test": "start-server-and-test start:server http://localhost:3000 cy:run",
     "eject": "SKIP_PREFLIGHT_CHECK=true react-scripts eject",
-    "cy:open": "npx cypress open", 
+    "cy:open": "npx cypress open",
     "cy:run": "cypress run"
   },
   "eslintConfig": {
@@ -50,6 +51,7 @@
     ]
   },
   "devDependencies": {
+    "@types/video.js": "^7.3.26",
     "aws-amplify": "^4.2.9",
     "cypress": "^8.4.0",
     "cypress-file-upload": "^5.0.8",
