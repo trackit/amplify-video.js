@@ -13,7 +13,7 @@ export interface StorageConfig {
   contentType: string;
 }
 
-export interface PlayerbackConfig {
+export interface PlaybackConfig {
   awsOutputVideo: string;
 }
 

@@ -6,7 +6,7 @@ export default {
     ) {
       createVideoObject(input: $input, condition: $condition) {
         id
-        ${signedUrl ? 'owner' : ''}
+        ${signedUrl ? 'token' : ''}
         createdAt
         updatedAt
       }
@@ -23,11 +23,10 @@ export default {
         description
         video {
           id
-          ${signedUrl ? 'owner' : ''}
+          ${signedUrl ? 'token' : ''}
           createdAt
           updatedAt
         }
-        ${signedUrl ? 'owner' : ''}
         createdAt
         updatedAt
       }
@@ -40,7 +39,7 @@ export default {
     ) {
       deleteVideoObject(input: $input, condition: $condition) {
         id
-        ${signedUrl ? 'owner' : ''}
+        ${signedUrl ? 'token' : ''}
         createdAt
         updatedAt
       }
@@ -57,11 +56,10 @@ export default {
         description
         video {
           id
-          ${signedUrl ? 'owner' : ''}
+          ${signedUrl ? 'token' : ''}
           createdAt
           updatedAt
         }
-        ${signedUrl ? 'owner' : ''}
         createdAt
         updatedAt
       }
@@ -70,7 +68,7 @@ export default {
   updateVodAsset: (signedUrl: boolean) => `
     mutation UpdateVodAsset(
       $input: UpdateVodAssetInput!
-      $condition: ModelvodAssetConditionInput
+      $condition: ModelVodAssetConditionInput
     ) {
       updateVodAsset(input: $input, condition: $condition) {
         id
@@ -78,11 +76,10 @@ export default {
         description
         video {
           id
-          ${signedUrl ? 'owner' : ''}
+          ${signedUrl ? 'token' : ''}
           createdAt
           updatedAt
         }
-        ${signedUrl ? 'owner' : ''}
         createdAt
         updatedAt
       }

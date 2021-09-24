@@ -1,6 +1,7 @@
 import Amplify from '@aws-amplify/core';
 import VideoBase from './VideoBase';
-import { MetadataDict, PlayerbackConfig, StorageConfig } from './Interfaces';
+import { MetadataDict, PlaybackConfig, StorageConfig } from './Interfaces';
+import NotFoundException from './Exception/NotFoundError';
 
 export default class VideoClass extends VideoBase {
   private _config: any;
@@ -46,6 +47,7 @@ export default class VideoClass extends VideoBase {
         file,
         config,
       };
+      this.storage.checkFileFormat(params.file);
       const responses: any = await Promise.all([
         await this.api.graphQlOperation({
           input: videoObject,
@@ -69,7 +71,14 @@ export default class VideoClass extends VideoBase {
         },
       };
     } catch (error) {
-      return this.logger.error(error);
+      this.logger.error(error);
+      return {
+        data: {
+          createVideoObject: null,
+          createVodAsset: null,
+          key: null,
+        },
+      };
     }
   }
 
@@ -117,34 +126,43 @@ export default class VideoClass extends VideoBase {
 
   public async metadata(vodAssetVideoId: string, metadatadict?: MetadataDict) {
     try {
-      if (metadatadict === undefined || metadatadict === null) {
+      if (!metadatadict) {
         const vodAssetResponse: any = await this.api.graphQlOperation({
           mutation: this.queries.getVodAsset,
           input: { id: vodAssetVideoId },
         });
+        if (!vodAssetResponse.getVodAsset)
+          throw new NotFoundException('Vod asset video ID not found');
         return vodAssetResponse;
       }
       const vodAssetResponse: any = await this.api.graphQlOperation({
-        mutation: this.queries.updateVodAsset,
-        input: { id: vodAssetVideoId, ...metadatadict },
+        mutation: this.mutations.updateVodAsset,
+        input: { input: { id: vodAssetVideoId, ...metadatadict } },
       });
       return vodAssetResponse;
     } catch (error) {
-      return this.logger.error(error);
+      this.logger.error(error);
+      return {
+        data: {
+          updateVodAsset: null,
+        },
+      };
     }
   }
 
-  public async playback(vodAssetVideoId: string, config?: PlayerbackConfig) {
+  public async playback(vodAssetVideoId: string, config: PlaybackConfig) {
     const vodAssetResponse: any = await this.api.graphQlOperation({
       mutation: this.queries.getVodAsset,
       input: { id: vodAssetVideoId },
     });
     try {
-      if (vodAssetResponse.data.getVodAsset === null) {
+      if (!vodAssetResponse.data.getVodAsset) {
         this.logger.error('Vod asset video ID not found');
         return {
-          data: null,
-          error: 'Vod asset video ID not found',
+          data: {
+            playbackUrl: null,
+            error: 'Vod asset video ID not found',
+          },
         };
       }
       const { id } = vodAssetResponse.data.getVodAsset;

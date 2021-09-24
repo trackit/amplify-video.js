@@ -7,11 +7,10 @@ export default {
         description
         video {
           id
-          ${signedUrl ? 'owner' : ''}
+          ${signedUrl ? 'token' : ''}
           createdAt
           updatedAt
         }
-        ${signedUrl ? 'owner' : ''}
         createdAt
         updatedAt
       }
