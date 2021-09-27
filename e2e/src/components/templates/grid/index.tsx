@@ -8,6 +8,7 @@ import PlaybackUrl from 'components/organisms/generate-playback-url';
 
 import './style.scss';
 import VideoPlayer from 'components/organisms/video-player';
+import Delete from 'components/organisms/delete';
 
 const Grid = () => {
   const [result, setResult] = useState<any>(null);
@@ -64,6 +65,22 @@ const Grid = () => {
             : null}
         </pre>
       </UpdateMetadata>
+      <Delete
+        title="Delete"
+        button="Upload"
+        callback={(data: any) => setResult({ delete: data, ...result })}
+      >
+        <p>
+          Testing Delete method
+          <br />
+          <code>Video.delete();</code>
+        </p>
+        <pre data-cy="pre-delete">
+          {result && result.delete
+            ? JSON.stringify(result.delete, null, 2)
+            : null}
+        </pre>
+      </Delete>
       <PlaybackUrl
         title="Playback url"
         button="Fetch"
