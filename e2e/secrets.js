@@ -1,3 +1,5 @@
+// This file intends to create/update secrets on Github repository
+
 const fs = require('fs');
 const { exec } = require('child_process');
 

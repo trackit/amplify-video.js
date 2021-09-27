@@ -10,7 +10,7 @@ export interface StorageConfig {
   level?: 'public' | 'private' | 'protected';
   bucket: string;
   progressCallback?: any;
-  contentType: string;
+  contentType?: string;
 }
 
 export interface PlaybackConfig {
