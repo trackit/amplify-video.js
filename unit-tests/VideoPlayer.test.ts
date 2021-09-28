@@ -1,5 +1,4 @@
 import BaseAnalytics from '../src/Analytics/BaseAnalytics';
-import { Player } from '../src/Interfaces';
 import MockVideoJS from './MockVideoJS';
 import VideoJS from './MockVideoJS';
 jest.mock('../src/Analytics/VideoJS', () => {
