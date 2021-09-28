@@ -24,7 +24,7 @@ export default class MockVideoJS extends BaseAnalytics {
     ]);
   }
   ended(params: Ended) {
-    return;
+    return params;
   }
   stop(time: number) {
     return this.buildMetric(this.MetricType.STOP, [
@@ -38,11 +38,11 @@ export default class MockVideoJS extends BaseAnalytics {
     ]);
   }
   errorOccured(params: ErrorOccured) {
-    return;
+    return params;
   }
 
   loadedData(params: LoadedData) {
-    return;
+    return params;
   }
   loadedStarted() {
     return;
@@ -51,25 +51,26 @@ export default class MockVideoJS extends BaseAnalytics {
   buffering(time?: number) {
     this.currentVideo.isBuffering = true;
     this.currentVideo.bufferStarted = Date.now();
+    return time;
   }
   bufferCompleted() {
     return;
   }
 
   step(params: Step) {
-    return;
+    return params;
   }
   timeUpdate(params: TimeUpdate) {
-    return;
+    return params;
   }
 
   seeked(params: Seeked) {
-    return;
+    return params;
   }
   seeking() {
     return;
   }
   updateSeekStatus(params: UpdateSeekStatus) {
-    return;
+    return params;
   }
 }
