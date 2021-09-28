@@ -44,7 +44,6 @@ export enum MetricType {
 }
 
 export interface CurrentVideo {
-  videoId: string;
   previousTime: number;
   currentTime: number;
   seekStart: null | number;
