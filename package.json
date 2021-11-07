@@ -10,7 +10,7 @@
     "tsc": "tsc",
     "prepare": "husky install",
     "pretest": "npm run build",
-    "preversion": "git fetch origin && git checkout origin/master && npm run lint",
+    "preversion": "git fetch origin && git checkout origin/main && npm run lint",
     "postversion": "git push origin && git push --tags",
     "test": "npm run unit:test && npm run cypress",
     "cypress": "npm run build && npm --prefix ./e2e test",
