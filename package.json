@@ -8,6 +8,8 @@
     "build": "rm -rf dist/ && tsc",
     "dev": "tsc -watch",
     "tsc": "tsc",
+    "version": "npm run build",
+    "postversion": "git push && git push --tags && rm -rf dist/",
     "prepare": "husky install",
     "pretest": "npm run build",
     "test": "npm run unit:test && npm run cypress",
