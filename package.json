@@ -59,8 +59,7 @@
     "typescript": "^4.4.2"
   },
   "files": [
-    "dist/**/*",
-    "README.md"
+    "dist/**/*"
   ],
   "lint-staged": {
     "*.ts": "eslint --cache --fix"
