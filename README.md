@@ -4,8 +4,6 @@ amplify-video.js is an unofficial client library that is purpose built for Ampli
 
 ## Installation
 
-TODO: Remove when first release
-
 ```sh
 $ npm install --save amplify-video.js
 ```
